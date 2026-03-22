@@ -20,9 +20,9 @@ app.get('/health', (req, res) => {
 });
 
 // Memory read endpoint — helps inspect persistent local run history
-app.get('/memory/recent', (req, res) => {
+app.get('/memory/recent', async (req, res) => {
   const { limit } = req.query;
-  const memory = getRecentEpisodes(limit);
+  const memory = await getRecentEpisodes(limit);
   res.json(memory);
 });
 
@@ -64,7 +64,7 @@ app.post('/agent', async (req, res) => {
 
   const finalExecution = refinement.refinedExecution || execution;
   const finalCritique = refinement.refinedCritique || critique;
-  const memoryWrite = saveEpisode({
+  const memoryWrite = await saveEpisode({
     goal: goal.trim(),
     plan,
     execution: finalExecution,
@@ -82,6 +82,9 @@ app.post('/agent', async (req, res) => {
     memory: {
       persisted: memoryWrite.success,
       episodeId: memoryWrite.episode.id,
+      backend: memoryWrite.backend,
+      fallbackUsed: Boolean(memoryWrite.fallbackUsed),
+      warning: memoryWrite.warning || null,
     },
   });
 });
