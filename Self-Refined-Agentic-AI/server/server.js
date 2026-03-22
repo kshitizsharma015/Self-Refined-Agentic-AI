@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { planGoal } = require('./modules/planner');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,11 +23,21 @@ app.post('/agent', async (req, res) => {
     return res.status(400).json({ error: 'A goal string is required in the request body.' });
   }
 
-  // Placeholder — full agentic loop will be wired here in later steps
+  // Step 1: Use Planner to decompose the goal
+  const plan = await planGoal(goal.trim());
+
+  if (!plan.success) {
+    return res.status(500).json({ error: 'Failed to plan goal', details: plan.error });
+  }
+
+  // TODO: Step 2 — Execute each task (Executor Module) [Step 3]
+  // TODO: Step 3 — Critique results (Critic Module) [Step 4]
+  // TODO: Step 4 — Refine if needed (Refinement Loop) [Step 5]
+
   res.json({
-    message: 'Agent received your goal.',
+    message: 'Agent planning complete.',
     goal: goal.trim(),
-    status: 'planning',
+    plan: plan,
   });
 });
 
