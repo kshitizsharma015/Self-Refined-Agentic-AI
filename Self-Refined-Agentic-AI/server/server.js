@@ -10,6 +10,115 @@ const { saveEpisode, getRecentEpisodes } = require('./modules/memoryStore');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+async function runAgentPipeline(goal, emit) {
+  const safeEmit = typeof emit === 'function' ? emit : () => {};
+
+  safeEmit('stage_start', { stage: 'planner', message: 'Planning tasks from high-level goal.' });
+  const plan = await planGoal(goal);
+
+  if (!plan.success) {
+    throw {
+      code: 'PLANNER_FAILED',
+      message: 'Failed to plan goal',
+      details: plan.error,
+    };
+  }
+
+  safeEmit('stage_complete', {
+    stage: 'planner',
+    message: 'Planning complete.',
+    plannedTasks: Array.isArray(plan.plan) ? plan.plan.length : 0,
+  });
+
+  safeEmit('stage_start', { stage: 'executor', message: 'Executing planned tasks.' });
+  const execution = await executePlan(plan.plan);
+
+  if (!execution.success) {
+    throw {
+      code: 'EXECUTOR_FAILED',
+      message: 'Failed to execute plan',
+      details: execution.error,
+    };
+  }
+
+  safeEmit('stage_complete', {
+    stage: 'executor',
+    message: 'Execution complete.',
+    completedTasks: execution.completedTasks,
+    totalTasks: execution.totalTasks,
+  });
+
+  safeEmit('stage_start', { stage: 'critic', message: 'Evaluating execution quality.' });
+  const critique = critiqueExecution(execution);
+
+  if (!critique.success) {
+    throw {
+      code: 'CRITIC_FAILED',
+      message: 'Failed to critique execution',
+      details: critique.error,
+    };
+  }
+
+  safeEmit('stage_complete', {
+    stage: 'critic',
+    message: 'Critique complete.',
+    qualityScore: critique.qualityScore,
+    flaggedTasks: Array.isArray(critique.flaggedTasks) ? critique.flaggedTasks.length : 0,
+  });
+
+  safeEmit('stage_start', { stage: 'refiner', message: 'Running self-refinement loop.' });
+  const refinement = await runRefinementLoop(plan.plan, execution, critique);
+
+  if (!refinement.success) {
+    throw {
+      code: 'REFINER_FAILED',
+      message: 'Failed to run refinement loop',
+      details: refinement.error,
+    };
+  }
+
+  const finalExecution = refinement.refinedExecution || execution;
+  const finalCritique = refinement.refinedCritique || critique;
+
+  safeEmit('stage_complete', {
+    stage: 'refiner',
+    message: 'Refinement complete.',
+    refinementApplied: Boolean(refinement.refinementApplied),
+  });
+
+  safeEmit('stage_start', { stage: 'memory', message: 'Persisting run to memory.' });
+  const memoryWrite = await saveEpisode({
+    goal,
+    plan,
+    execution: finalExecution,
+    critique: finalCritique,
+    refinement,
+  });
+
+  safeEmit('stage_complete', {
+    stage: 'memory',
+    message: 'Memory persistence complete.',
+    backend: memoryWrite.backend,
+    fallbackUsed: Boolean(memoryWrite.fallbackUsed),
+  });
+
+  return {
+    message: 'Agent planning, execution, critique, and refinement complete.',
+    goal,
+    plan,
+    execution: finalExecution,
+    critique: finalCritique,
+    refinement,
+    memory: {
+      persisted: memoryWrite.success,
+      episodeId: memoryWrite.episode.id,
+      backend: memoryWrite.backend,
+      fallbackUsed: Boolean(memoryWrite.fallbackUsed),
+      warning: memoryWrite.warning || null,
+    },
+  };
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -34,59 +143,54 @@ app.post('/agent', async (req, res) => {
     return res.status(400).json({ error: 'A goal string is required in the request body.' });
   }
 
-  // Step 1: Use Planner to decompose the goal
-  const plan = await planGoal(goal.trim());
+  try {
+    const result = await runAgentPipeline(goal.trim());
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message || 'Agent pipeline failed',
+      code: error.code || 'PIPELINE_FAILED',
+      details: error.details || null,
+    });
+  }
+});
 
-  if (!plan.success) {
-    return res.status(500).json({ error: 'Failed to plan goal', details: plan.error });
+// Live thought stream endpoint — emits agent stage updates over Server-Sent Events
+app.post('/agent/stream', async (req, res) => {
+  const { goal } = req.body;
+
+  if (!goal || typeof goal !== 'string' || goal.trim() === '') {
+    return res.status(400).json({ error: 'A goal string is required in the request body.' });
   }
 
-  // Step 2: Execute planned tasks sequentially
-  const execution = await executePlan(plan.plan);
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
 
-  if (!execution.success) {
-    return res.status(500).json({ error: 'Failed to execute plan', details: execution.error });
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
   }
 
-  // Step 3: Critique execution quality
-  const critique = critiqueExecution(execution);
+  const sendEvent = (event, payload) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
 
-  if (!critique.success) {
-    return res.status(500).json({ error: 'Failed to critique execution', details: critique.error });
+  sendEvent('connected', { message: 'Live agent stream connected.' });
+
+  try {
+    const result = await runAgentPipeline(goal.trim(), sendEvent);
+    sendEvent('final_result', result);
+    sendEvent('done', { message: 'Stream completed.' });
+  } catch (error) {
+    sendEvent('error', {
+      error: error.message || 'Agent stream failed',
+      code: error.code || 'PIPELINE_FAILED',
+      details: error.details || null,
+    });
+  } finally {
+    res.end();
   }
-
-  // Step 4: Refine flagged tasks if critique requests improvements
-  const refinement = await runRefinementLoop(plan.plan, execution, critique);
-
-  if (!refinement.success) {
-    return res.status(500).json({ error: 'Failed to run refinement loop', details: refinement.error });
-  }
-
-  const finalExecution = refinement.refinedExecution || execution;
-  const finalCritique = refinement.refinedCritique || critique;
-  const memoryWrite = await saveEpisode({
-    goal: goal.trim(),
-    plan,
-    execution: finalExecution,
-    critique: finalCritique,
-    refinement,
-  });
-
-  res.json({
-    message: 'Agent planning, execution, critique, and refinement complete.',
-    goal: goal.trim(),
-    plan: plan,
-    execution: finalExecution,
-    critique: finalCritique,
-    refinement,
-    memory: {
-      persisted: memoryWrite.success,
-      episodeId: memoryWrite.episode.id,
-      backend: memoryWrite.backend,
-      fallbackUsed: Boolean(memoryWrite.fallbackUsed),
-      warning: memoryWrite.warning || null,
-    },
-  });
 });
 
 app.listen(PORT, () => {
