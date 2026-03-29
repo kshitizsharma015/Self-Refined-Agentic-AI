@@ -32,7 +32,7 @@ function extractJsonObject(text) {
  * Takes a high-level goal and decomposes it into executable sub-tasks.
  * Returns a structured plan with tasks, dependencies, and reasoning.
  */
-async function planGoal(goal) {
+async function planGoal(goal, context = {}) {
   try {
     if (!process.env.GROQ_API_KEY) {
       throw new Error('Missing GROQ_API_KEY in environment variables.');
@@ -56,7 +56,13 @@ Rules:
   "reasoning": "Why this plan makes sense"
 }`;
 
-    const userMessage = `Goal: ${goal}\n\nCreate a step-by-step execution plan as JSON.`;
+    const similarEpisodes = Array.isArray(context?.similarEpisodes) ? context.similarEpisodes : [];
+    const memoryHints = similarEpisodes
+      .slice(0, 3)
+      .map((item, idx) => `${idx + 1}. Goal: ${item.goal}; Similarity: ${item.similarity || 'n/a'}; Summary: ${item.summary || 'none'}`)
+      .join('\n');
+
+    const userMessage = `Goal: ${goal}\n\nRelevant past memory (if available):\n${memoryHints || 'No prior similar episodes found.'}\n\nCreate a step-by-step execution plan as JSON.`;
 
     const completion = await groq.chat.completions.create({
       model,

@@ -5,7 +5,7 @@ const { planGoal } = require('./modules/planner');
 const { executePlan } = require('./modules/executor');
 const { critiqueExecution } = require('./modules/critic');
 const { runRefinementLoop } = require('./modules/refiner');
-const { saveEpisode, getRecentEpisodes } = require('./modules/memoryStore');
+const { saveEpisode, getRecentEpisodes, getSimilarEpisodes } = require('./modules/memoryStore');
 const { runCodeSnippet } = require('./modules/codeRunner');
 const { performWebOperation } = require('./modules/webOperator');
 
@@ -15,8 +15,19 @@ const PORT = process.env.PORT || 3000;
 async function runAgentPipeline(goal, emit) {
   const safeEmit = typeof emit === 'function' ? emit : () => {};
 
+  safeEmit('stage_start', { stage: 'memory_lookup', message: 'Retrieving similar past episodes.' });
+  const similarMemory = await getSimilarEpisodes(goal, 3);
+  const similarEpisodes = similarMemory.success ? similarMemory.episodes : [];
+
+  safeEmit('stage_complete', {
+    stage: 'memory_lookup',
+    message: 'Similarity retrieval complete.',
+    backend: similarMemory.backend,
+    similarCount: similarEpisodes.length,
+  });
+
   safeEmit('stage_start', { stage: 'planner', message: 'Planning tasks from high-level goal.' });
-  const plan = await planGoal(goal);
+  const plan = await planGoal(goal, { similarEpisodes });
 
   if (!plan.success) {
     throw {
@@ -135,6 +146,18 @@ app.get('/memory/recent', async (req, res) => {
   const { limit } = req.query;
   const memory = await getRecentEpisodes(limit);
   res.json(memory);
+});
+
+// Similar memory endpoint — retrieve top semantically similar past episodes
+app.get('/memory/similar', async (req, res) => {
+  const { goal, limit } = req.query;
+
+  if (!goal || typeof goal !== 'string' || goal.trim() === '') {
+    return res.status(400).json({ error: 'Query parameter "goal" is required.' });
+  }
+
+  const similar = await getSimilarEpisodes(goal.trim(), limit);
+  res.json(similar);
 });
 
 // Hacker Mode endpoint — execute a direct code snippet request
