@@ -1,0 +1,138 @@
+:root {
+  --bg: #f5f1e8;
+  --paper: #fffdf7;
+  --ink: #1f1b16;
+  --accent: #8b2f1f;
+  --accent-soft: #f6d7c2;
+  --line: #d9cdbf;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(circle at 10% 20%, #efe3d4 0%, transparent 40%),
+    radial-gradient(circle at 80% 10%, #ead0b8 0%, transparent 35%),
+    var(--bg);
+  color: var(--ink);
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(53, 35, 18, 0.08);
+}
+
+h1,
+h2 {
+  margin: 0 0 10px;
+}
+
+p {
+  margin: 0 0 12px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fff;
+}
+
+.actions {
+  margin-top: 10px;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error {
+  margin-top: 10px;
+  border-radius: 10px;
+  padding: 10px;
+  background: #ffdede;
+  color: #7a1212;
+}
+
+.terminal .log {
+  background: #11100f;
+  color: #d5f7d4;
+  border-radius: 10px;
+  padding: 10px;
+  min-height: 160px;
+  max-height: 320px;
+  overflow: auto;
+  font-family: 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+}
+
+.line {
+  margin-bottom: 8px;
+}
+
+.event {
+  color: #ffb082;
+  margin-right: 8px;
+}
+
+.payload {
+  color: #d8ecd8;
+}
+
+.muted {
+  opacity: 0.7;
+}
+
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 280px;
+  overflow: auto;
+  background: #faf6ef;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 10px;
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 14px;
+  }
+}

@@ -24,6 +24,7 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+client/dist/
 
 # Coverage
 coverage/
@@ -31,3 +32,9 @@ coverage/
 # Misc
 *.tmp
 *.temp
+
+# Runtime data
+server/data/agent-memory.json
+
+# Vite cache
+client/.vite/
