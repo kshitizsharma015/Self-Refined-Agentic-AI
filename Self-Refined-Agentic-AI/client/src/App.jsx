@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -36,17 +36,83 @@ function parseSseChunk(buffer, onEvent) {
   return remaining;
 }
 
+function trimText(text, maxLength = 180) {
+  const value = String(text ?? '');
+  if (value.length <= maxLength) {
+    return value;
+  }
+  return `${value.slice(0, maxLength)}...`;
+}
+
+function compactPayload(eventName, data) {
+  if (eventName === 'final_result' && typeof data === 'object' && data) {
+    return {
+      message: data.message,
+      goal: trimText(data.goal, 80),
+      plannedTasks: data?.plan?.plan?.length || 0,
+      completedTasks: data?.execution?.completedTasks || 0,
+      qualityScore: data?.critique?.qualityScore || null,
+      memoryBackend: data?.memory?.backend || 'unknown',
+    };
+  }
+
+  if (typeof data === 'string') {
+    return trimText(data);
+  }
+
+  if (typeof data === 'object' && data) {
+    const compact = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string') {
+        compact[key] = trimText(value, 120);
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        compact[key] = value;
+      }
+    }
+    return compact;
+  }
+
+  return data;
+}
+
 export default function App() {
   const [goal, setGoal] = useState('Find latest AI papers and summarize trends');
   const [events, setEvents] = useState([]);
   const [finalResult, setFinalResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const logRef = useRef(null);
 
   const timeline = useMemo(
-    () => events.map((item, index) => ({ id: `${index}-${item.event}`, ...item })),
+    () =>
+      events.map((item, index) => ({
+        id: `${index}-${item.event}`,
+        ...item,
+        compactData: compactPayload(item.event, item.data),
+      })),
     [events]
   );
+
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [timeline]);
+
+  const copyFinalResult = async () => {
+    if (!finalResult) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(finalResult, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1300);
+    } catch {
+      setError('Could not copy final result to clipboard.');
+    }
+  };
 
   const startStream = async () => {
     const trimmedGoal = goal.trim();
@@ -127,19 +193,24 @@ export default function App() {
 
       <section className="card terminal">
         <h2>Live Timeline</h2>
-        <div className="log">
+        <div className="log" ref={logRef}>
           {timeline.length === 0 ? <p className="muted">No events yet.</p> : null}
           {timeline.map((item) => (
             <div key={item.id} className="line">
               <span className="event">[{item.event}]</span>
-              <span className="payload">{typeof item.data === 'string' ? item.data : JSON.stringify(item.data)}</span>
+              <span className="payload">{JSON.stringify(item.compactData)}</span>
             </div>
           ))}
         </div>
       </section>
 
       <section className="card">
-        <h2>Final Result Snapshot</h2>
+        <div className="resultHead">
+          <h2>Final Result Snapshot</h2>
+          <button type="button" onClick={copyFinalResult} disabled={!finalResult}>
+            {copied ? 'Copied' : 'Copy JSON'}
+          </button>
+        </div>
         <pre>{finalResult ? JSON.stringify(finalResult, null, 2) : 'No final result yet.'}</pre>
       </section>
     </div>

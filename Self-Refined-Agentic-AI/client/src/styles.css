@@ -106,6 +106,10 @@ button[disabled] {
   margin-bottom: 8px;
 }
 
+.line:last-child {
+  margin-bottom: 0;
+}
+
 .event {
   color: #ffb082;
   margin-right: 8px;
@@ -117,6 +121,18 @@ button[disabled] {
 
 .muted {
   opacity: 0.7;
+}
+
+.resultHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.resultHead h2 {
+  margin: 0;
 }
 
 pre {
