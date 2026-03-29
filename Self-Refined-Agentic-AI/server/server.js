@@ -6,6 +6,7 @@ const { executePlan } = require('./modules/executor');
 const { critiqueExecution } = require('./modules/critic');
 const { runRefinementLoop } = require('./modules/refiner');
 const { saveEpisode, getRecentEpisodes } = require('./modules/memoryStore');
+const { runCodeSnippet } = require('./modules/codeRunner');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -133,6 +134,34 @@ app.get('/memory/recent', async (req, res) => {
   const { limit } = req.query;
   const memory = await getRecentEpisodes(limit);
   res.json(memory);
+});
+
+// Hacker Mode endpoint — execute a direct code snippet request
+app.post('/tools/run-code', async (req, res) => {
+  const { language, code } = req.body || {};
+
+  if (!code || typeof code !== 'string' || code.trim() === '') {
+    return res.status(400).json({ error: 'Code string is required.' });
+  }
+
+  const result = await runCodeSnippet(language || 'javascript', code.trim());
+
+  if (!result.success) {
+    return res.status(500).json({
+      error: 'Code execution failed.',
+      details: result.error || result.output,
+      source: result.source,
+    });
+  }
+
+  res.json({
+    success: true,
+    language: result.language,
+    source: result.source,
+    stdout: result.stdout || '',
+    stderr: result.stderr || '',
+    output: result.output,
+  });
 });
 
 // Main agent entry point — accepts a high-level goal from the frontend

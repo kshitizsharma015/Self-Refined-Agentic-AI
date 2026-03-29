@@ -52,6 +52,27 @@ function runLocalJavaScript(code) {
   return logs.join('\n') || 'Local JS execution completed with no console output.';
 }
 
+async function runCodeSnippet(language = 'javascript', code = '') {
+  const normalizedLanguage = String(language || 'javascript').toLowerCase();
+  const safeCode = String(code || '').trim();
+
+  if (!safeCode) {
+    return {
+      success: false,
+      source: 'input-validation',
+      error: 'Code snippet is required.',
+      output: 'Code snippet is required.',
+    };
+  }
+
+  const descriptor = {
+    task: `Run ${normalizedLanguage} code snippet`,
+    description: `\`\`\`${normalizedLanguage}\n${safeCode}\n\`\`\``,
+  };
+
+  return runSandboxedCode(descriptor);
+}
+
 async function runSandboxedCode(task = {}) {
   const combinedText = `${task.task || ''}\n${task.description || ''}`;
   const fenced = extractCodeFence(combinedText);
@@ -119,4 +140,4 @@ async function runSandboxedCode(task = {}) {
   }
 }
 
-module.exports = { runSandboxedCode };
+module.exports = { runSandboxedCode, runCodeSnippet };
