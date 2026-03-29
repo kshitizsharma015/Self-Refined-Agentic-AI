@@ -7,6 +7,7 @@ const { critiqueExecution } = require('./modules/critic');
 const { runRefinementLoop } = require('./modules/refiner');
 const { saveEpisode, getRecentEpisodes } = require('./modules/memoryStore');
 const { runCodeSnippet } = require('./modules/codeRunner');
+const { performWebOperation } = require('./modules/webOperator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -162,6 +163,29 @@ app.post('/tools/run-code', async (req, res) => {
     stderr: result.stderr || '',
     output: result.output,
   });
+});
+
+// Web Operator endpoint — perform external API actions (Reddit/YouTube)
+app.post('/tools/web-operator', async (req, res) => {
+  const { action, subreddit, limit, url } = req.body || {};
+
+  const result = await performWebOperation({
+    action,
+    subreddit,
+    limit,
+    url,
+  });
+
+  if (!result.success) {
+    return res.status(400).json({
+      error: 'Web operator action failed.',
+      details: result.error,
+      action: result.action,
+      source: result.source || null,
+    });
+  }
+
+  res.json(result);
 });
 
 // Main agent entry point — accepts a high-level goal from the frontend

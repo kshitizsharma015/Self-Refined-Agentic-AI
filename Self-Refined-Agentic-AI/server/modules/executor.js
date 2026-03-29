@@ -1,5 +1,6 @@
 const { researchWeb } = require('./webReader');
 const { runSandboxedCode } = require('./codeRunner');
+const { performWebOperation, inferOperationFromTask } = require('./webOperator');
 
 function isResearchTask(task = {}) {
   const combined = `${task.task || ''} ${task.description || ''}`.toLowerCase();
@@ -9,6 +10,11 @@ function isResearchTask(task = {}) {
 function isCodeTask(task = {}) {
   const combined = `${task.task || ''} ${task.description || ''}`.toLowerCase();
   return /(code|python|javascript|js|algorithm|program|script|debug|compile|run code|```)/.test(combined);
+}
+
+function isOperatorTask(task = {}) {
+  const combined = `${task.task || ''} ${task.description || ''}`.toLowerCase();
+  return /(reddit|youtube|external api|fetch api|web operator|post comment|channel data)/.test(combined);
 }
 
 function buildFallbackResult(task) {
@@ -55,6 +61,27 @@ async function executePlan(planTasks = []) {
           output: `Code task fallback used for: ${task.task}`,
           evidence: codeResult.error,
           source: codeResult.source,
+        };
+      }
+    } else if (isOperatorTask(task)) {
+      const operation = inferOperationFromTask(task);
+      const operatorResult = operation
+        ? await performWebOperation(operation)
+        : { success: false, error: 'Could not infer web operation from task.' };
+
+      if (operatorResult.success) {
+        runResult = {
+          status: 'completed',
+          output: `Web operator action completed for: ${task.task}`,
+          evidence: operatorResult.summary,
+          source: operatorResult.source,
+        };
+      } else {
+        runResult = {
+          status: 'completed',
+          output: `Web operator fallback used for: ${task.task}`,
+          evidence: operatorResult.error,
+          source: operatorResult.source || null,
         };
       }
     } else if (isResearchTask(task)) {
