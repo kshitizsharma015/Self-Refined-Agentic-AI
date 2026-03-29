@@ -1,8 +1,14 @@
 const { researchWeb } = require('./webReader');
+const { runSandboxedCode } = require('./codeRunner');
 
 function isResearchTask(task = {}) {
   const combined = `${task.task || ''} ${task.description || ''}`.toLowerCase();
   return /(search|research|find|latest|paper|article|web|news|read|scrape)/.test(combined);
+}
+
+function isCodeTask(task = {}) {
+  const combined = `${task.task || ''} ${task.description || ''}`.toLowerCase();
+  return /(code|python|javascript|js|algorithm|program|script|debug|compile|run code|```)/.test(combined);
 }
 
 function buildFallbackResult(task) {
@@ -33,7 +39,25 @@ async function executePlan(planTasks = []) {
   for (const task of planTasks) {
     let runResult;
 
-    if (isResearchTask(task)) {
+    if (isCodeTask(task)) {
+      const codeResult = await runSandboxedCode(task);
+
+      if (codeResult.success) {
+        runResult = {
+          status: 'completed',
+          output: `Code task executed for: ${task.task}`,
+          evidence: codeResult.output,
+          source: codeResult.source,
+        };
+      } else {
+        runResult = {
+          status: 'completed',
+          output: `Code task fallback used for: ${task.task}`,
+          evidence: codeResult.error,
+          source: codeResult.source,
+        };
+      }
+    } else if (isResearchTask(task)) {
       const query = `${task.task}. ${task.description || ''}`.trim();
       const webResult = await researchWeb(query);
 
