@@ -82,7 +82,11 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(true);
   const logRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const timeline = useMemo(
     () =>
@@ -99,6 +103,81 @@ export default function App() {
       logRef.current.scrollTop = logRef.current.scrollHeight;
     }
   }, [timeline]);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setVoiceSupported(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        transcript += event.results[i][0].transcript;
+      }
+      setGoal(transcript.trim());
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      setError('Voice capture failed. Try again or type the goal manually.');
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    setVoiceSupported(true);
+  }, []);
+
+  useEffect(() => {
+    if (!finalResult || !autoSpeak || !window.speechSynthesis) {
+      return;
+    }
+
+    const summary = [
+      finalResult.message,
+      `Completed ${finalResult?.execution?.completedTasks || 0} tasks.`,
+      `Quality score ${finalResult?.critique?.qualityScore || 0}.`,
+    ].join(' ');
+
+    const utterance = new SpeechSynthesisUtterance(summary);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }, [finalResult, autoSpeak]);
+
+  const startListening = () => {
+    if (!recognitionRef.current) {
+      setError('Speech recognition is not available in this browser.');
+      return;
+    }
+
+    try {
+      setError('');
+      setIsListening(true);
+      recognitionRef.current.start();
+    } catch {
+      setIsListening(false);
+      setError('Microphone could not start. Please retry.');
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
 
   const copyFinalResult = async () => {
     if (!finalResult) {
@@ -186,6 +265,17 @@ export default function App() {
           <button type="button" onClick={startStream} disabled={loading}>
             {loading ? 'Streaming...' : 'Run Agent Stream'}
           </button>
+          <button type="button" onClick={isListening ? stopListening : startListening} disabled={!voiceSupported}>
+            {isListening ? 'Stop Mic' : 'Jarvis Mic'}
+          </button>
+          <label className="voiceToggle">
+            <input
+              type="checkbox"
+              checked={autoSpeak}
+              onChange={(event) => setAutoSpeak(event.target.checked)}
+            />
+            Auto speak result
+          </label>
         </div>
 
         {error ? <div className="error">{error}</div> : null}
