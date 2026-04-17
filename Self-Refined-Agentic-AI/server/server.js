@@ -8,6 +8,9 @@ const { runRefinementLoop } = require('./modules/refiner');
 const { saveEpisode, getRecentEpisodes, getSimilarEpisodes } = require('./modules/memoryStore');
 const { runCodeSnippet } = require('./modules/codeRunner');
 const { performWebOperation } = require('./modules/webOperator');
+const { researchQuery } = require('./modules/researchAgent');
+const { createSheet } = require('./modules/sheetMaker');
+const { composeFinalAnswer } = require('./modules/finalResponder');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -115,8 +118,18 @@ async function runAgentPipeline(goal, emit) {
     fallbackUsed: Boolean(memoryWrite.fallbackUsed),
   });
 
+  safeEmit('stage_start', { stage: 'response', message: 'Composing final response for the user.' });
+  const finalResponse = await composeFinalAnswer(goal, plan, finalExecution, finalCritique);
+  safeEmit('stage_complete', {
+    stage: 'response',
+    message: 'Final response composed.',
+    source: finalResponse.source,
+  });
+
   return {
     message: 'Agent planning, execution, critique, and refinement complete.',
+    finalAnswer: finalResponse.answer,
+    finalAnswerSource: finalResponse.source,
     goal,
     plan,
     execution: finalExecution,
@@ -208,6 +221,41 @@ app.post('/tools/web-operator', async (req, res) => {
     });
   }
 
+  res.json(result);
+});
+
+// Web research endpoint — gather and synthesize sources into a concise brief
+app.post('/tools/research', async (req, res) => {
+  const { query } = req.body || {};
+
+  if (!query || typeof query !== 'string' || query.trim() === '') {
+    return res.status(400).json({ error: 'A research query string is required.' });
+  }
+
+  const result = await researchQuery(query.trim());
+
+  if (!result.success) {
+    return res.status(400).json({ error: result.error || 'Research failed.' });
+  }
+
+  res.json(result);
+});
+
+// Spreadsheet endpoint — generate CSV-ready data for Excel or Sheets
+app.post('/tools/create-sheet', async (req, res) => {
+  const { prompt } = req.body || {};
+
+  if (!prompt || typeof prompt !== 'string' || prompt.trim() === '') {
+    return res.status(400).json({ error: 'A sheet prompt string is required.' });
+  }
+
+  const result = await createSheet(prompt.trim());
+
+  if (!result.success) {
+    return res.status(400).json({ error: result.error || 'Sheet generation failed.' });
+  }
+
+  res.setHeader('Content-Type', 'application/json');
   res.json(result);
 });
 
