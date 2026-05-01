@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const STORAGE_KEYS = {
   profile: 'synthetix.profile.v1',
   sessions: 'synthetix.sessions.v1',

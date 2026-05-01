@@ -12,6 +12,8 @@
 \usepackage{float}
 \usepackage{hyperref}
 \usepackage{xcolor}
+\usepackage{etoolbox}
+\usepackage{ragged2e}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{caption}
@@ -44,6 +46,11 @@
   {\thechapter.}{0.75em}{}
 \titlespacing*{\chapter}{0pt}{0pt}{12pt}
 
+\makeatletter
+\patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
+\patchcmd{\chapter}{\clearpage}{}{}{}
+\makeatother
+
 \lstdefinestyle{latexstyle}{
   basicstyle=\ttfamily\small,
   breaklines=true,
@@ -55,71 +62,877 @@
 \newcommand{\ProjectTitle}{Synthetix AI}
 \newcommand{\InstitutionName}{\placeholder{COLLEGE / UNIVERSITY NAME}}
 \newcommand{\DepartmentName}{\placeholder{DEPARTMENT NAME}}
-\newcommand{\GuideName}{\placeholder{GUIDE NAME}}
-\newcommand{\StudentName}{\placeholder{STUDENT NAME}}
-\newcommand{\RollNumber}{\placeholder{ROLL NUMBER}}
-\newcommand{\AcademicYear}{\placeholder{ACADEMIC YEAR}}
+\newcommand{\GuideName}{Dr. Sachin Yadav}
+\newcommand{\StudentName}{Kshitiz Sharma}
+\newcommand{\RollNumber}{2315510106}
+\newcommand{\AcademicYear}{2025--2026}
+\newcommand{\TeamMemberOne}{Kshitiz Sharma (2315510106)}
+\newcommand{\TeamMemberTwo}{Shivangi Chahar (2315510195)}
+\newcommand{\TeamMemberThree}{Pushpendr Singh (2315510157)}
+\newcommand{\TeamMemberFour}{}
 
 \begin{document}
 
+\pagenumbering{roman}
+
+\begin{titlepage}
+\centering
+\vspace*{1.2cm}
+{\Large \textbf{\InstitutionName}\\[0.4cm]}
+{\large \DepartmentName\\[1.2cm]}
+{\Huge \textbf{Project Report}\\[0.4cm]}
+{\LARGE \textbf{\ProjectTitle}\\[1.5cm]}
+{\large Submitted in partial fulfillment of the requirements for the degree of\\[0.2cm]}
+{\large \placeholder{B.Tech / B.E. / M.Tech / Your Program}\\[1.5cm]}
+\begin{tabular}{rl}
+\textbf{Guide:} & \GuideName \\
+\textbf{Mentor:} & \GuideName \\
+\textbf{Team Member 1:} & \TeamMemberOne \\
+\textbf{Team Member 2:} & \TeamMemberTwo \\
+\textbf{Team Member 3:} & \TeamMemberThree \\
+\end{tabular}
+
+\vfill
+{\large \AcademicYear}
+\end{titlepage}
+
+\clearpage
+\thispagestyle{empty}
+\begin{center}
+{\Large \textbf{Certificate}}\\[1.5cm]
+\end{center}
+This is to certify that the project report entitled \textbf{\ProjectTitle{}} has been prepared and submitted by \textbf{\TeamMemberOne{}}, \textbf{\TeamMemberTwo{}}, and \textbf{\TeamMemberThree{}} in partial fulfillment of the requirements for the award of the degree of Bachelor of Technology in Computer Science and Engineering (Artificial Intelligence and Machine Learning).
+
+The project titled \textbf{\ProjectTitle{}} represents original work carried out by the students under my supervision during the academic year \AcademicYear{}. The report reflects the actual development of a self-refined agentic AI assistant, including system design, implementation, testing, analysis, and documentation. The work embodied in this report has been carried out with due care, academic sincerity, and proper acknowledgment of the tools, libraries, and reference sources used during development.
+
+To the best of my knowledge, the work submitted here is genuine and has not been submitted in part or in full for the award of any other degree or diploma in this or any other institution. The students have demonstrated consistent effort in understanding the problem domain, planning the software architecture, implementing the application, and presenting the final system in a structured academic format. The project is therefore certified as an authentic record of work done under my guidance.
+
+This certificate is issued for submission to the department and for academic evaluation purposes. It is expected that the report and accompanying software represent the final form of the project at the time of submission and may be used for internal assessment, viva, and record purposes by the institution.
+
+\vfill
+\begin{tabular}{p{0.47\textwidth}p{0.47\textwidth}}
+\textbf{Guide / Supervisor} & \textbf{Head of Department} \\
+\vspace{1.5cm} & \vspace{1.5cm} \\
+Name: \GuideName & Name: Gaurav Batla Sir \\
+
+\end{tabular}
+
+\clearpage
+\thispagestyle{empty}
+\begin{center}
+{\Large \textbf{Declaration}}\\[1.5cm]
+\end{center}
+\begin{minipage}{0.95\textwidth}
+We, \textbf{\TeamMemberOne{}}, \textbf{\TeamMemberTwo{}}, and \textbf{\TeamMemberThree{}}, students of B.Tech in Computer Science and Engineering (Artificial Intelligence and Machine Learning), hereby declare that the project report entitled \textbf{\ProjectTitle{}} is the result of our own work, carried out during the eighth semester under the supervision of \textbf{\GuideName{}}.
+
+We further declare that the ideas, implementation steps, design decisions, observations, and final conclusions described in this report have been prepared by us after careful study, experimentation, and development. Wherever the work of another author, website, library, or documentation source has been referred to, the same has been acknowledged in the references or through descriptive citations in the report. No portion of this report has been copied without acknowledgment.
+
+We understand the importance of academic integrity and confirm that this project has not been submitted previously, either wholly or partly, for the award of any degree, diploma, or certification in this or any other institution. We also confirm that the software developed as part of this project reflects the final working state of the application at the time of submission and that the report has been written to accurately represent the actual system.
+
+We accept responsibility for the content of this report and for the authenticity of the work described in it. We also understand that any misrepresentation may invite academic action as per institutional rules. This declaration is made in good faith for academic evaluation.
+\end{minipage}
+
+\vfill
+\begin{flushright}
+\textbf{\StudentName{}}\\
+\textbf{\RollNumber{}}\\[0.8cm]
+\textbf{Signature of Student Representative}
+\end{flushright}
+
+\clearpage
+\thispagestyle{empty}
+\begin{center}
+{\Large \textbf{Abstract}}\\[1.5cm]
+\end{center}
+\noindent\textbf{\ProjectTitle{}} is a self-refined agentic AI assistant that combines goal decomposition, tool execution, memory retrieval, critique, and refinement in a single interactive system. The project is designed to move beyond conventional chatbot behavior by enabling structured task planning, multi-step reasoning, live web research, spreadsheet generation, and transparent streaming of internal processing stages to the user interface.
+
+The system architecture consists of a React and Vite frontend, an Express-based backend, and a modular AI orchestration layer powered by Groq. The assistant receives a user goal, converts it into a task plan, executes the plan using specialized tools, evaluates the result through a critic stage, and refines the output when necessary. The frontend presents real-time updates through server-sent events, making the internal workflow visible and easy to understand.
+
+The project includes two major agentic tools: a web research module that extracts live information from multiple sources and synthesizes it into a structured answer, and a sheet generation module that creates downloadable CSV-style outputs from natural language prompts. In addition, the system includes voice input, voice output, session management, local persistence, and rich markdown rendering for a practical user experience.
+
+The report also emphasizes the software engineering value of the system. The application is modular, maintainable, and easy to demonstrate, which makes it suitable for academic evaluation. Each major part of the project can be explained on its own: the chat layer handles interaction, the backend handles orchestration, and the tools handle specialized tasks. That separation makes the project easier to review and easier to extend.
+
+Overall, the project demonstrates that a modern assistant can be both conversational and operational. Instead of simply generating text, it can analyze a request, decide how to act, and return a useful output with visible progress. This is the core idea behind the report and the reason the project is presented as an agentic AI system.
+
+This report documents the problem statement, objectives, related concepts, architecture, implementation, testing, limitations, and future scope of the project in a complete academic format.
+
+In broader terms, the work contributes a practical pattern for building student-level agentic applications that are understandable in a viva setting and still useful in real usage. The project shows how a small but carefully organized software stack can support planning, streaming, and structured output generation without becoming difficult to maintain. It is therefore both a prototype and a reference implementation for future AI-based web applications.
+
+The report is intended to be read as a complete technical narrative, beginning with the motivation for the project and ending with the deployment and future scope. That structure is deliberate, because the value of the system is not only in the final output but in the way the output is produced, reviewed, and presented.
+
+Another important aspect of the work is that it is easy to evaluate in parts. The assistant pipeline can be reviewed on its own, the research and sheet tools can be reviewed on their own, and the user interface can be reviewed on its own. That separation is useful in a project defense because it gives the evaluator several clear technical touchpoints instead of one large opaque feature.
+
+The final version of the project therefore stands as a compact but complete example of an agent-based assistant built with mainstream web technologies. It reflects the practical steps required to move from an idea to a working product, and it documents those steps in a way that can support both academic review and future improvement.
+
+
+
+\vfill
+\begin{flushright}
+\textbf{The Authors}
+\end{flushright}
+
+\chapter*{Acknowledgement}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+We would like to express our sincere gratitude to \textbf{\GuideName{}} for continuous guidance, valuable suggestions, and support throughout the development of this project. His direction helped us refine the idea from a simple conversational system into a structured agentic assistant with visible reasoning stages. The project benefited greatly from the feedback given during the design and documentation phases.
+
+We also thank our institution, department faculty, and classmates for their encouragement and assistance during the completion of this report. The academic environment provided us with the motivation to improve the project presentation, strengthen the technical explanation, and think carefully about how the system would be evaluated in a viva or review session.
+
+We are especially thankful to our team members \textbf{\TeamMemberOne{}}, \textbf{\TeamMemberTwo{}}, and \textbf{\TeamMemberThree{}} for their coordination, contribution, and teamwork in completing the project successfully. Each member contributed to the research, implementation, testing, or documentation workflow, and the final report reflects that collective effort. The project became stronger because the team worked in a coordinated and responsible way.
+
+We are also grateful for the use of modern web technologies, open documentation, and AI development tools that made this project possible. The availability of reliable frameworks, browser APIs, and model services allowed us to focus on architecture and usability rather than building every component from scratch. That practical advantage made the project feasible within the academic timeline.
+
+Finally, we acknowledge the technical guidance and moral support received during the course of the project from our mentors and peers. Their feedback helped us improve the clarity of the report, the usability of the interface, and the overall presentation of the application. We are thankful for the opportunity to learn through this project and to present a system that reflects both effort and understanding.
+
+The process also taught us that a good AI project is not only about generating a strong answer. It is about shaping the user journey, controlling the display of results, and making sure the software behaves predictably when it is shown to others. That practical lesson became one of the strongest outcomes of the project and influenced the final organization of the report.
+
+\vfill
+\begin{flushright}
+\textbf{The Authors}
+\end{flushright}
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\clearpage
+
 \pagenumbering{arabic}
 
-\chapter{Introduction}
-Artificial intelligence systems are moving from simple question-answer interfaces to goal-driven assistants that can reason, plan, execute, verify, and improve outcomes over multiple steps. In many academic and industrial settings, users no longer expect a single text reply; they expect a reliable digital collaborator that can break down complex tasks, use external tools, and provide transparent progress. This shift creates the need for agentic architectures that combine language intelligence with structured control flow and engineering reliability. The project titled \ProjectTitle{} is designed around this need and presents a practical implementation of a self-refined AI assistant.
+\chapter{Synopsis}
+\section{Project Summary}
+\ProjectTitle{} is a self-refined agentic AI assistant platform that combines chat, planning, tool execution, real-time visibility, and artifact generation in a single web application. The system is designed to move beyond ordinary question-answer behavior by handling goals as workflows. When a user submits a request, the assistant plans a path, executes the necessary steps, checks the result, and improves the final answer before presenting it back to the user.
 
-The system accepts a high-level goal from the user and transforms it into a sequence of executable tasks. Instead of treating all requests as plain text generation problems, the platform uses a modular pipeline consisting of planning, execution, critique, refinement, and memory persistence. This design enables the assistant to handle heterogeneous workloads such as web research, code execution, and external API-based operations while maintaining a coherent response strategy. The architecture also supports incremental quality improvement by allowing the system to evaluate and revise its own intermediate outputs before generating a final result.
+The project is implemented as a modern full-stack application. The frontend provides the chat experience, the session sidebar, voice input and output, and the interface for the research and sheet-generation tools. The backend provides the orchestration pipeline, external API calls, memory operations, and response synthesis. The design is intentionally modular so that the tools, pipeline, and user interface can all evolve independently.
 
-A major contribution of this project is the integration of backend intelligence with a transparent, user-facing frontend. Through server-sent events, users can monitor each stage of the pipeline in real time, including memory lookup, task planning, execution status, quality evaluation, and refinement actions. This visibility strengthens user trust and improves usability because the user can understand how the final output was produced rather than receiving an opaque answer. The inclusion of voice input and auto-speech output further improves accessibility and interaction convenience.
+The project has been designed as a mentor-friendly and viva-friendly system. That means the value is not only in what the model generates, but also in how clearly the user can observe the task flow. The assistant therefore shows plan creation, tool use, and refinement in a way that can be explained to reviewers without technical confusion. This is especially useful in academic presentations where clarity, control flow, and evidence of implementation matter as much as the final output.
 
-From an implementation perspective, the project combines modern web engineering practices and AI orchestration principles. The backend is built with Node.js and Express for dependable API routing and modular service composition. The frontend is built with React and Vite for responsive interaction and efficient rendering. Tool-level capabilities, including live web reading and code execution, are integrated through dedicated modules so that each capability remains isolated, testable, and replaceable. The memory subsystem supports both local persistence and vector-oriented similarity retrieval, allowing the assistant to use past episodes as context for future tasks.
-
-This report presents the complete development narrative of \ProjectTitle{}, including system goals, technical challenges, architecture design, module behavior, implementation strategy, testing outcomes, and future scope. The work demonstrates that practical AI assistants require more than model prompting; they require robust orchestration, careful module design, controlled tool use, memory-aware decision support, and a clear interaction layer. By combining these components into one cohesive platform, the project provides a strong academic and engineering foundation for advanced intelligent assistant systems.
-
-\chapter{Problem Statement}
-Traditional chatbot-style AI systems primarily generate single-pass responses, which makes them useful for simple informational queries but limited for complex objective-driven tasks. Real-world tasks often involve multiple dependent steps, external information retrieval, execution of programmatic actions, and quality validation. When these capabilities are missing, the output may appear fluent but remain incomplete, unverified, or poorly aligned with user intent. This mismatch between user expectation and system capability forms the core problem addressed by this project.
-
-In conventional designs, AI output is typically produced without structured decomposition. As a result, long or complex goals are handled monolithically, increasing the chance of missing key steps or producing generic responses. Furthermore, many systems do not maintain meaningful operational memory across runs. Without memory, the assistant cannot reuse prior successful approaches, avoid repeated errors, or adapt strategy using historical context. The absence of memory-aware behavior reduces consistency, especially in iterative workflows where users revisit related goals over time.
-
-Another major challenge is limited tool integration. A text-only model cannot natively fetch live web data, execute code in a controlled environment, or call structured external operations. For tasks that depend on current information or computational verification, this becomes a significant reliability issue. Even when tools are available, lack of orchestration can produce unstable behavior, because there is no clear mechanism to decide which tool should be used, when it should be used, and how results should be validated before final delivery.
-
-Quality assurance is also a central problem. Most basic assistants produce one final answer without an internal critique stage. In practical use, this can lead to partial reasoning, unsupported claims, or low-confidence outcomes. A robust system must inspect execution artifacts, detect weak outputs, and attempt refinement where needed. Without this loop, users receive answers that may be plausible yet suboptimal. Therefore, a self-evaluating and self-improving control flow is essential for dependable agentic behavior.
-
-From the user-experience perspective, opaque processing reduces trust. If users cannot observe intermediate states, they cannot distinguish between meaningful progress and silent failure. This is especially problematic in educational and project settings, where traceability and explainability are required. Hence, the problem is not only computational but also interactional: the system must make its process observable and interpretable in real time.
-
-The project addresses these issues by designing an end-to-end agent pipeline that can: decompose goals into explicit tasks, route tasks to the appropriate execution tools, critique and refine outputs, store and retrieve contextual memory, and stream progress to the frontend. The problem statement can therefore be summarized as the engineering challenge of building a transparent, memory-aware, self-refining AI assistant that performs reliably across multi-step practical tasks instead of returning isolated one-shot text responses.
-
-\chapter{Objectives}
-The primary objective of \ProjectTitle{} is to design and implement a practical agentic AI system that can reliably process high-level goals through a structured, modular, and transparent workflow. The objective is not merely to produce natural language responses, but to build an engineered assistant capable of planning, action, verification, and iterative improvement. To achieve this broader objective, the project is divided into specific functional and technical goals that guide implementation and evaluation.
-
-The first objective is to create a robust planning mechanism that transforms user goals into executable subtasks with clear sequencing and dependency awareness. This ensures that complex goals are handled systematically rather than through ad hoc generation. A second objective is to implement an execution layer that can dispatch tasks to specialized tools such as web research components, code execution modules, and external operation handlers. This objective enables the assistant to move beyond text synthesis and perform actionable, evidence-driven operations.
-
-The third objective is to incorporate an internal quality control stage through a critic module that evaluates execution quality and identifies weak or incomplete outputs. The fourth objective is to implement a refinement loop that reprocesses flagged tasks to improve the final result. Together, these objectives introduce self-correction behavior, which is essential for improving dependability in multi-step tasks where first-pass outputs may not be sufficient.
-
-The fifth objective is to build a persistent memory subsystem that stores each run as an episode and supports retrieval of relevant past episodes using similarity-based matching. This objective is intended to improve contextual continuity, reduce repeated mistakes, and enhance long-term usefulness of the system. The design also targets extensibility by supporting both local memory fallback and scalable vector-ready storage integration.
-
-The sixth objective is to provide a transparent and user-friendly frontend that displays live processing stages through event streaming. This objective addresses usability and trust by making the internal workflow visible to users. The interface should support intuitive goal submission, timeline-based monitoring, result inspection, and voice-enabled interaction, thereby improving both accessibility and engagement.
-
-A final objective is to ensure modularity, testability, and future scalability of the full stack. Each component should be independently maintainable and replaceable, allowing iterative project growth. In summary, the objectives of this project can be represented as follows:
+\section{System Highlights}
 \begin{itemize}[leftmargin=1.2cm]
-  \item develop structured goal decomposition and task planning,
-  \item integrate multi-tool execution for research, code, and web operations,
-  \item implement critique and self-refinement for output quality improvement,
-  \item design persistent memory with similarity-based context retrieval,
-  \item build a real-time interactive frontend with transparent stage streaming,
-  \item and establish a modular architecture suitable for academic and practical extension.
+  \item structured goal planning through a multi-stage agent pipeline,
+  \item live research generation with external source synthesis,
+  \item sheet creation from natural language requests,
+  \item voice-enabled interaction for input and output,
+  \item session history and local persistence for continuity,
+  \item and transparent live-stage updates for user trust.
 \end{itemize}
 
-\chapter{Background and Related Concepts}
-Agentic AI refers to systems that can perform autonomous, multi-step behavior by combining reasoning, planning, action selection, tool usage, and feedback-driven adaptation. Unlike standard conversational models that primarily generate one response at a time, agentic systems operate through a controlled pipeline where intermediate states influence subsequent decisions. This paradigm is particularly relevant for tasks that require decomposition, external evidence gathering, and iterative correction. The conceptual foundation of \ProjectTitle{} is rooted in this transition from reactive text generation to orchestrated goal execution.
+The most important design choice in the project is that the assistant is treated as a system, not just a prompt. This changes the quality of the product because system-level behavior can be tested, inspected, improved, and demonstrated. For the final report, that distinction is important because it shows engineering thinking rather than only model usage.
 
-A core background concept is task decomposition. Complex user requests are often underspecified and contain multiple hidden subtasks. Decomposition transforms such requests into explicit units of work, making execution traceable and testable. In software engineering terms, this is analogous to converting a high-level requirement into actionable work packages. For AI assistants, decomposition reduces cognitive load per step and improves alignment between user intent and system behavior.
+The platform also creates practical value for different kinds of users. A student can use it to generate a structured answer or a research brief. A mentor can use it to inspect how the task is decomposed and whether the final response is justified. A developer can use it to check how tool routing, streaming updates, and error handling behave in a real application. This broader usefulness is one of the reasons the project is presented as an agentic assistant rather than a limited chatbot.
 
-Another important concept is tool-augmented intelligence. Language models alone do not provide guaranteed access to live data, deterministic computation, or external system interaction. Agentic systems therefore incorporate tool interfaces such as web retrieval modules, code execution sandboxes, and API connectors. Tool augmentation enables evidence-based output generation and practical action capability. However, effective augmentation requires orchestration logic to route tasks correctly and handle failure states, which is why modular execution design is central to this project.
+Another point worth emphasizing is that the product is intentionally demo-friendly. The visible controls, compact layout, and immediate output sections are designed to reduce confusion during presentation. When a reviewer opens the application, they can immediately see the workflow, the session model, the active tools, and the streaming behavior. This makes the project easier to defend in a viva or evaluation because the architecture and the functionality are both visible.
 
-Self-evaluation and refinement are equally important in related agent research and engineering practice. First-pass outputs may be logically incomplete, weakly evidenced, or partially misaligned with constraints. Critique modules address this by evaluating execution quality using explicit criteria, while refinement modules perform corrective iterations. This mirrors quality-assurance loops in software development, where outputs are tested, reviewed, and improved before release. In an AI context, refinement improves reliability and reduces the risk of confidently incorrect answers.
+\chapter{Technical Keywords}
+\section{Area of Project}
+The project belongs to the combined areas of Artificial Intelligence, Agentic Systems, Human-Computer Interaction, and Web Application Development. It uses language models as reasoning components, but the main value of the project comes from orchestration, tool usage, and transparent execution.
 
-Memory is a foundational concept for long-term assistant performance. Stateless systems treat every request in isolation, which prevents learning from operational history. Episodic memory storage allows the assistant to retain goal-plan-execution records and retrieve similar experiences when new but related goals appear. Similarity-based retrieval, especially with vector-ready representations, provides a practical mechanism for contextual reuse. This not only improves response consistency but also supports efficiency by reducing redundant exploratory behavior.
+\section{Technical Keywords}
+\begin{itemize}[leftmargin=1.2cm]
+  \item Agentic AI
+  \item Goal decomposition
+  \item Task planning
+  \item Tool execution
+  \item Memory retrieval
+  \item Critique and refinement
+  \item Real-time streaming
+  \item Server-sent events
+  \item React
+  \item Vite
+  \item Node.js
+  \item Express
+  \item Groq SDK
+  \item Web research
+  \item CSV generation
+  \item localStorage persistence
+\end{itemize}
 
-Finally, explainability and interaction transparency are critical related concepts for human-centered AI systems. Users trust systems more when intermediate processing is observable. Streaming stage updates, exposing execution status, and presenting structured results make the system behavior understandable and auditable. This project adopts these principles by integrating real-time event streaming and a timeline-oriented frontend. Therefore, the background of \ProjectTitle{} combines concepts from autonomous AI agents, tool-based computation, iterative quality control, memory-augmented reasoning, and transparent UX design to create a complete engineering-oriented assistant framework.
+These keywords capture the core technical identity of the system. The project is not built around a single framework or a single model call; instead, it combines interaction design, backend orchestration, and tool usage into one workflow. That is why the report repeatedly discusses planning, execution, critique, and refinement, because those stages are what make the assistant behave like an engineered system.
+
+\chapter{Introduction}
+\section{Project Idea}
+The main idea behind \ProjectTitle{} is to build an AI assistant that behaves like a useful digital worker instead of a basic chatbot. A chatbot generally answers one question at a time, while an agentic system can understand a task, break it into parts, use tools, and refine the result. The project demonstrates this transition by combining conversational UI with operational intelligence.
+
+In practical use, this means the assistant can be asked to do work such as research a topic, organize information, generate a checklist, or create a sheet-like output. The assistant does not simply reply with a paragraph; it can move through stages and produce a structured artifact. That is the main reason the project looks and feels more advanced than a normal chat interface.
+
+The idea was also shaped by a recurring presentation issue: many AI projects look similar from the outside because they all accept prompts and return text. This project addresses that problem by making the internal workflow visible. The user can see that the model is not simply generating text in one pass but is actually moving through a controlled process that includes memory lookup, planning, execution, quality checking, and refinement.
+
+\section{Motivation of the Project}
+The motivation comes from the limitation of ordinary chat systems. For practical tasks, users need more than generic text. They need evidence, structure, and follow-through. They also need to see how the system is working, especially when the output takes time. This project was built to answer that need by adding planning, streaming, research, and sheet generation to the standard chat experience.
+
+Another motivation was presentation clarity. In academic evaluation, a strong project is not only one that works internally, but one that can be explained clearly at the time of demonstration. The project therefore exposes the intermediate stages and the special tools in the main workflow so that the user can immediately see why the system is useful.
+
+There is also a software engineering motivation behind the project. A modular assistant is easier to test, easier to extend, and easier to debug. By separating the frontend, backend, pipeline, and tool modules, the system avoids becoming a tangled prototype. That separation matters because the project evolved through multiple changes, and modularity kept the changes manageable.
+
+\section{Why This Project Matters}
+The project is important because it shows how AI can be turned into a usable product. The system provides a visible workflow, which makes the assistant easier to explain during a viva or project meeting. It also shows how a web application can be used as an agent platform rather than just a static interface.
+
+It also matters because it supports a broader trend in modern AI engineering: systems should not only generate language but also perform task-oriented actions. That shift is where practical value is created. For students, this project is useful because it combines backend logic, frontend design, API integration, and AI orchestration in one coherent submission.
+
+In a practical sense, the project demonstrates that agentic behavior is not a theoretical label. The system really does route requests, produce outputs, and recover from errors in a structured way. That makes the project suitable for discussion in meetings where the team may be asked to justify why the product is more than a simple chatbot.
+
+\chapter{Problem Definition and Scope}
+\section{Problem Statement}
+Many AI tools answer prompts without showing how the answer was produced. This creates three problems: the output may be incomplete, the user may not trust it, and the system may not create useful artifacts such as files or tables. The project addresses this by building an assistant that can reason through steps and show progress.
+
+For a project presentation, this problem is easy to explain. If the assistant only returns text, the evaluator cannot tell whether the answer came from real reasoning, a lucky prompt, or a tool-backed process. By contrast, when the assistant displays its work, the evaluator can observe the quality of the decomposition and the consistency of the final answer. That is why transparency is built into the problem definition itself.
+
+Another issue is that many systems are not durable when the user asks for multi-step work. A user may want a research summary, then a follow-up table, then a revised output. A weak system handles each request in isolation, while a stronger system retains context and can refine its response based on earlier interaction. This project is designed specifically to support that stronger behavior.
+
+\section{Goals and Objectives}
+\begin{itemize}[leftmargin=1.2cm]
+  \item transform a high-level request into a structured plan,
+  \item execute tasks using specialized tools,
+  \item critique and refine weak outputs,
+  \item preserve useful session memory,
+  \item and present a user-friendly interface with visible progress.
+\end{itemize}
+
+These objectives were selected because they map directly to what a real agentic assistant must do. Planning reduces ambiguity, execution introduces action, critique improves quality, memory gives continuity, and the interface keeps the process understandable. Together they form a coherent objective set rather than a random feature list.
+
+The project also had a presentation objective: to make the system easy to explain to non-experts. If a mentor or evaluator asks what the project does, the answer should be simple. It plans, it uses tools, it checks its work, and it shows progress. That simple explanation is valuable because it reflects the actual architecture while still being accessible.
+
+\section{Scope of the Project}
+The scope includes chat interaction, research synthesis, sheet generation, live stage streaming, session management, voice I/O, and local persistence. The project is not a full enterprise platform yet, but it is a strong prototype that demonstrates the architecture and behavior of a modern agentic assistant.
+
+Within this scope, the assistant is expected to support both routine conversational tasks and structured output tasks. Routine tasks include answering questions, continuing a conversation, and managing sessions. Structured tasks include generating a research response with sources or producing a sheet-like output with rows and columns. These use cases show that the project is broad enough to be useful, while still focused enough to be realistic for a student submission.
+
+The scope deliberately stops short of full cloud-scale deployment and enterprise authentication. That is a design choice, not a limitation of the core idea. For the purpose of the report, the important part is that the system architecture is modular and demonstrable, so that future enhancements can be added without redesigning the whole stack.
+
+\section{Major Constraints}
+\begin{itemize}[leftmargin=1.2cm]
+  \item The system depends on external APIs for model and web access.
+  \item Persistence is primarily local for the current version.
+  \item Output quality depends on prompt clarity and network availability.
+  \item Browser support for voice features can vary.
+\end{itemize}
+
+\section{Methodology of Problem Solving}
+The problem is solved using a pipeline approach. Instead of answering immediately, the assistant looks at memory, creates a plan, performs the work, evaluates the result, and then improves the response if needed. This workflow is suitable for complex tasks because it reduces the chance of a weak first-pass answer.
+
+Methodologically, this mirrors a disciplined problem-solving process used in software projects and research work. First, the goal is clarified. Next, the task is decomposed into smaller parts. Then the parts are handled with suitable tools. Finally, the output is reviewed and corrected. This structure is why the system feels more dependable than a single-turn chatbot response.
+
+The same method also makes debugging easier. If the final result is not good, the developer can inspect the stage that failed rather than guessing at a hidden monolith. In practice, that means the pipeline helps both the user and the developer. The user gains confidence, and the developer gains observability.
+
+\section{Outcome and Applications}
+The outcome is a practical assistant that can be shown in meetings and used for everyday task support. The system can help with research, planning, content organization, and structured sheet creation. It is especially useful in academic demonstrations because it clearly shows the difference between a chatbot and an agent.
+
+The assistant is also useful as a proof of concept for future work. A team could extend the system into a document assistant, a collaboration assistant, or a workplace tool. Because the current architecture already has separate routes, tool modules, and a visible UI, it provides a strong base for more advanced features later.
+
+\section{Hardware and Software Resources}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.30\textwidth}X}
+Hardware & A standard laptop or desktop with internet access is sufficient for development and demonstration. \\
+Frontend & React 18, Vite 5, browser APIs, CSS3. \\
+Backend & Node.js, Express, Groq SDK, Axios, Dotenv, CORS. \\
+AI Services & Groq model access and optional Jina Reader access. \\
+Storage & Browser localStorage for sessions and settings. \\
+\end{tabularx}
+
+The development setup is intentionally lightweight. That makes the project easy to run in a student workspace and easy to demonstrate during review. At the same time, the architecture is modern enough to support future deployment if the team decides to build on it later.
+
+\chapter{Project Plan}
+\section{Project Model Analysis}
+The project follows an iterative development style with repeated evaluation and refinement. This is close to a spiral-style approach because the system was built in stages, tested after each stage, and improved based on the observed behavior. That approach is suitable for an agentic product because tool behavior, rendering logic, and integration logic all need to be validated together.
+
+This model also matched the way the project evolved in practice. The interface was first made usable, then the assistant logic was improved, then the agentic tools were added, and finally the reliability issues were removed. That order is not accidental: if the user cannot see the system clearly, then more backend complexity does not help. The spiral approach kept the product visible while the intelligence layer matured.
+
+\section{Reconciled Estimates}
+The project was planned as a medium-sized full-stack AI application. The expected effort was distributed across frontend development, backend integration, tool implementation, testing, and documentation. The timeline was intentionally kept flexible because external API behavior and UI polish often require extra iteration.
+
+The estimate was also practical in terms of risk. The model, the web tools, and the rendering layer all depend on external behavior that can change. Because of that, the project needed enough buffer time for refinement and debugging. This is the kind of planning detail that demonstrates good project management in the report.
+
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.30\textwidth}X}
+Estimated Duration & 8 to 12 weeks of active development and refinement. \\
+Team Effort & Shared across chat UI, backend API, and tool integration work. \\
+Risk Level & Medium, due to external services and UI integration complexity. \\
+Delivery Style & Incremental demos with visible checkpoints. \\
+\end{tabularx}
+
+\section{Cost Estimation}
+The project has low direct software cost because the main components are open source or free-tier tools. The primary cost is development time, debugging, and API usage during testing. The following table summarizes the practical cost view.
+
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.30\textwidth}X}
+Developer Time & Main investment in planning, implementation, testing, and documentation. \\
+Hosting & Can be deployed on a low-cost or free hosting setup for demonstration. \\
+AI/API Usage & Depends on Groq and any external research service usage. \\
+Maintenance & Mainly code updates, bug fixes, and content tuning. \\
+\end{tabularx}
+
+The financial cost remains low, but the engineering cost is meaningful because the system has to integrate model outputs, browser behavior, and network-dependent tools. This distinction is useful for the report because it shows that a low-budget project can still have high technical value.
+
+\section{Risk Management}
+\begin{itemize}[leftmargin=1.2cm]
+  \item External API failures were handled with fallback paths.
+  \item Payload normalization was added to prevent UI crashes.
+  \item The tool buttons were moved to the main chat area for visibility.
+  \item The backend was restarted after route changes to avoid stale code.
+\end{itemize}
+
+These risk mitigations were essential because agentic systems are only useful if they remain visible and responsive. A blank page, hidden button, or malformed response can make the entire product feel broken even if the underlying logic is correct. The report therefore treats reliability as a design issue, not just a coding issue.
+
+\section{Project Schedule}
+\begin{enumerate}[leftmargin=1.2cm]
+  \item requirement analysis and report structure,
+  \item frontend chat and layout development,
+  \item backend pipeline and route integration,
+  \item research and sheet tool development,
+  \item stability fixes and output normalization,
+  \item testing, packaging, and GitHub push.
+\end{enumerate}
+
+The schedule was intentionally phased so that each milestone could be reviewed independently. That allowed the team to correct layout issues, integration issues, and visibility issues before moving on to the next stage. In a report, this kind of staged progress shows controlled development rather than random feature additions.
+
+The schedule also reflects the real rhythm of the project. The UI had to be polished before the tools could be evaluated properly. The backend had to be stable before the report could confidently describe the pipeline. Finally, the documentation had to be aligned with what the user could actually demonstrate. This alignment between work and report is what makes the final submission coherent.
+
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.28\textwidth}X}
+Milestone 1 & Define the report structure and decide on the chapter flow. \\
+Milestone 2 & Build and refine the user interface so the product is easy to explain. \\
+Milestone 3 & Add the agent pipeline and internal reasoning flow. \\
+Milestone 4 & Integrate research and sheet tools with visible output cards. \\
+Milestone 5 & Harden the application against bad payloads and hidden errors. \\
+Milestone 6 & Prepare the final report, polish the presentation, and finalize GitHub delivery. \\
+\end{tabularx}
+
+\chapter{Software Requirements Specification}
+\section{Introduction}
+This chapter describes what the software must do and how users interact with it. The assistant should be easy to use, responsive, and transparent. The user should be able to log in, start conversations, invoke tools, and view the output without needing technical knowledge of the internal pipeline.
+
+\section{Functional Model and Description}
+The system functions as a multi-stage agent platform. The main functional blocks are chat handling, session management, planning, execution, critique, refinement, research, sheet generation, and result rendering. Each block contributes to the final user experience and can be tested separately.
+
+Functionally, the system is designed to minimize user effort. The user does not need to manage the workflow manually or decide which internal stage should run next. That decision is made by the assistant pipeline. This is an important difference between a conventional app and an agentic app, because the agent reduces the amount of procedural thinking required from the user.
+
+\section{Data Flow Description}
+\begin{enumerate}[leftmargin=1.2cm]
+  \item user submits a prompt,
+  \item frontend sends the request to the backend,
+  \item backend retrieves memory and creates a plan,
+  \item tools are called when required,
+  \item result is evaluated and refined,
+  \item final output is streamed back to the interface.
+\end{enumerate}
+
+The data flow is intentionally simple at the top level, but each step can branch internally. For example, a general conversational prompt may follow the main agent path, whereas a research request may trigger the web research tool, and a structured request may invoke the sheet generator. This branching makes the system flexible without making the interface complicated.
+
+\section{Non-Functional Requirements}
+\begin{itemize}[leftmargin=1.2cm]
+  \item Performance: responses should appear quickly and stream while work is ongoing.
+  \item Usability: the interface should remain compact and easy to follow.
+  \item Reliability: errors should be handled safely without page crashes.
+  \item Maintainability: modules should remain separated and readable.
+  \item Scalability: the architecture should allow future tools and persistence.
+\end{itemize}
+
+These requirements are critical because agentic systems tend to become complex quickly. If the UI is not usable, the user loses confidence. If the system is not reliable, the product feels unfinished. If the code is not maintainable, future additions become risky. The report therefore treats non-functional quality as a first-class part of the design.
+
+\section{System Behavior}
+The system must support both direct chat responses and structured tool outputs. It should also preserve the conversation state locally so that the user can return to previous sessions. Where possible, the assistant should provide sources, structured results, and meaningful progress updates.
+
+The expected behavior is also iterative. If the initial output is weak or incomplete, the system should improve the answer instead of simply returning the first attempt. That requirement is what makes the project agentic rather than static.
+
+\chapter{Detailed Design Document}
+\section{System Architecture}
+The architecture is divided into the user interface, the orchestration backend, and the tool services. The user interface renders the chat experience and keeps the interaction fluid. The backend coordinates the pipeline and collects the data needed to produce the answer. Tool services focus on specialized work such as research and sheet generation.
+
+At a higher level, the architecture follows a service-oriented pattern inside a single application. The UI is responsible for presentation, the server is responsible for control and routing, and the tools are responsible for the specialized work. This makes the project easier to reason about because each part has a clear job and clear boundaries.
+
+\section{Module Design}
+\begin{itemize}[leftmargin=1.2cm]
+  \item \textbf{Frontend module}: handles login, sidebar, chat area, tool buttons, and message rendering.
+  \item \textbf{Pipeline module}: handles memory lookup, planning, execution, critique, and refinement.
+  \item \textbf{Research module}: gathers sources and creates a brief with citations.
+  \item \textbf{Sheet module}: converts prompt text into spreadsheet-ready rows and columns.
+  \item \textbf{Safety module}: normalizes payloads and prevents display crashes.
+\end{itemize}
+
+The module design is useful in the report because it proves separation of concerns. Instead of putting everything into one file or one route, the project divides work into manageable pieces. That makes the application easier to debug, easier to test, and easier to explain during an evaluation.
+
+\section{Interaction Flow}
+The user enters a request, the assistant creates a response plan, and the backend executes the relevant path. For common queries, the answer may come directly from the pipeline. For special requests, the research or sheet tool is invoked. The result is then rendered in the chat area and stored for the session.
+
+The interaction flow is designed to feel natural to the user even though the backend is doing complex work. The user types a message once, but the system may internally perform memory lookup, planning, tool use, critique, and refinement. That difference between simple input and complex internal action is one of the strongest points of the project.
+
+\section{Design Notes}
+The design intentionally prioritizes visibility. Important buttons are placed near the chat area so that a reviewer immediately sees the advanced features. This is useful in a meeting because the product can be demonstrated without explaining hidden menus or secondary controls.
+
+The design also reduces the chance of a presentation failure. Since tool actions and results are visible in the primary workflow, the user does not need to hunt through panels or hidden options. That practical usability is important when the report is being demonstrated live.
+
+\chapter{Project Implementation}
+\section{Tools and Technologies Used}
+The frontend uses React, Vite, CSS, and browser APIs for voice and persistence. The backend uses Node.js, Express, Groq SDK, Axios, CORS, and Dotenv. The project also uses localStorage and optional web services for retrieval and generation tasks.
+
+These technologies were chosen because they are lightweight, familiar, and flexible. React and Vite make the interface responsive. Express makes the routing layer simple. Browser APIs provide voice features without extra heavy dependencies. Groq and web reading APIs provide the intelligence layer. The stack is therefore practical rather than over-engineered.
+
+\section{Implementation Strategy}
+The implementation started with the chat interface, then moved to authentication, then to the agent pipeline, and finally to the dedicated tools. This sequence was chosen because a visible UI made it easier to test later backend additions. Once the main workflow was stable, the research and sheet outputs were added and normalized for safe rendering.
+
+That strategy also allowed quick feedback. The team could see whether the interface felt right before investing more time in the deeper agent logic. After the UI was stable, the tool outputs could be attached confidently. This prevented the common problem where a project becomes technically deep but visually confusing.
+
+\section{Algorithm Details}
+The main algorithm can be described in five steps:
+\begin{enumerate}[leftmargin=1.2cm]
+  \item identify the goal and relevant session context,
+  \item generate a plan for the task,
+  \item execute the plan or invoke a tool,
+  \item critique the generated result,
+  \item refine and return the final answer.
+\end{enumerate}
+
+In a more detailed sense, the algorithm works as a loop rather than a straight line. Once the assistant has planned and executed the task, it can compare the output against the original request and perform corrections. This loop is important because it makes the final response more trustworthy and more aligned with the user’s goal.
+
+\section{Frontend Implementation}
+The frontend manages sessions, user input, message rendering, and tool result cards. It also handles safe parsing of backend responses so that invalid or unexpected payloads do not break the page. This layer provides the user-facing experience and is responsible for making the agentic workflow understandable.
+
+The frontend also plays an important safety role. Since the backend can return different kinds of payloads depending on the task, the UI must normalize the data before rendering it. This is why the project uses defensive checks and structured components for tool output. In a demo setting, that safety is critical because UI crashes can destroy the credibility of the whole project.
+
+\section{Backend Implementation}
+The backend defines the API routes and connects them to the AI pipeline and tool modules. It is responsible for reading environment variables, calling external services, shaping the response format, and returning structured data that the frontend can render consistently.
+
+The backend is where the agentic behavior becomes real. This is the layer that decides when to retrieve memory, when to plan, when to call a tool, and how to return the final answer. It also manages the external dependencies, which means it must be written carefully so that failures can be absorbed rather than exposed directly to the user.
+
+\section{Output Generation}
+The research tool returns a summary, key points, and source list. The sheet tool returns a title, columns, rows, CSV content, and preview markdown. These outputs are useful because they are immediately actionable instead of only descriptive.
+
+The fact that outputs are structured is important for the whole project. Structured output can be displayed, reused, exported, or discussed. This is very different from an ordinary paragraph response, which may be readable but not directly usable.
+
+\chapter{Software Testing}
+\section{Type of Testing Used}
+The project was checked using functional, integration, interface, and lightweight regression testing. The main goal of testing was not only to see whether the code compiles, but also whether the user can actually complete the intended tasks without confusion.
+
+Testing was also done with a demo mindset. The most important question was whether a reviewer could launch the app, see the main functions, and understand the output without additional explanation. That is why visibility bugs were treated as serious issues, even when the underlying logic itself was correct.
+
+\section{Test Cases and Results}
+\begin{longtable}{p{0.28\textwidth}p{0.28\textwidth}p{0.34\textwidth}}
+\textbf{Test Case} & \textbf{Expected Result} & \textbf{Observed Result} \\
+Login flow & User enters the app successfully & Works with the two-mode sign up/log in screen \\
+Main chat prompt & Assistant responds in chat & Works with streaming and final response \\
+Research tool & Sources and summary are shown & Works after moving results inline \\
+Sheet tool & CSV-style result is visible & Works after payload normalization \\
+Voice output & Message is spoken aloud & Works in supported browsers \\
+Session persistence & Conversations remain available & Works through localStorage \\
+\end{longtable}
+
+These test cases were chosen to cover both basic usability and advanced agentic features. A report is stronger when it shows that the standard flow works and that the special tools also work. This table therefore gives a balanced view of the application’s behavior.
+
+\section{Validation Summary}
+The most important validation result was that the advanced features are visible and usable in the main workflow. Earlier issues such as hidden buttons, invisible results, and blank-page crashes were fixed by moving controls into the primary interface and sanitizing payloads before rendering.
+
+The validation process also showed an important lesson: for a demo application, presentation defects are as important as logic defects. A feature that exists but cannot be seen or explained is effectively a missing feature during evaluation. The report therefore documents the changes that improved both correctness and visibility.
+
+\chapter{Results and Discussion}
+\section{Observed Results}
+The final system behaves like a real agentic assistant. The user can log in, open a session, ask a question, watch the pipeline work, and receive a structured answer. The research tool adds evidence-based information gathering, and the sheet tool adds practical artifact creation. This makes the project more than a text generator.
+
+The observed result is also a stronger story for the team during a meeting. Instead of saying that the project is "an AI chat app," the team can say that it is a multi-stage assistant that plans, executes, critiques, and refines, while also generating useful artifacts. That framing is much more convincing and matches the actual implementation better.
+
+\section{Screenshots and Demo Points}
+In a live demonstration, the most visible strengths of the system are the streamlined login flow, the compact conversation panel, the progress updates, and the tool-generated outputs. The project is easy to present because the user can see what is happening at each stage.
+
+The demo points are intentionally chosen to highlight the most defensible technical features. First, the login and session interface shows product polish. Second, the streaming view shows live orchestration. Third, the research and sheet tools show that the system creates tangible results. Together these three moments make the project easy to explain.
+
+\section{Discussion}
+The project shows that a strong AI product needs orchestration and interaction design as much as model quality. By separating the backend pipeline from the user interface and by exposing the work as it happens, the system becomes easier to explain and more trustworthy for users.
+
+This discussion matters because it shifts the evaluation from "does the model know things?" to "can the system perform useful work?" That is a better standard for agentic AI. The report should therefore emphasize that the engineering contribution is the orchestration layer and not only the prompt or model choice.
+
+\chapter{Deployment and Maintenance}
+\section{Deployment}
+To run the system in development, the backend is started from the server directory and the frontend is started from the client directory. The frontend is available at the local Vite URL, and the backend listens on its own API port. Environment variables are loaded through \texttt{.env} for API access.
+
+Deployment is simple enough to reproduce quickly, which is helpful for reviewers and teammates. The backend and frontend can be started independently, so if one layer needs checking, the other does not have to be changed. That separation makes the application easier to demonstrate and to support during the final presentation.
+
+\section{Environment Setup}
+\begin{itemize}[leftmargin=1.2cm]
+  \item Install Node.js and npm.
+  \item Install dependencies in both client and server folders.
+  \item Create or update the \texttt{.env} file for API keys.
+  \item Start the backend and frontend separately.
+\end{itemize}
+
+This setup is intentionally standard because standard setups are easier to explain and easier to troubleshoot. If a team member wants to run the project later, they should not need a complex machine setup. That is another reason the technology stack was kept practical.
+
+\section{Maintenance}
+Maintenance mainly involves updating prompts, adjusting the UI, adding tools, and improving error handling. Because the system is modular, these changes can be made without rewriting the entire application. This is useful for future expansion and for keeping the demo stable.
+
+Maintenance is also where the project can mature into a more complete product. Additional features such as true authentication, cloud saving, file upload, or collaborative access would fit naturally into the current structure. The report therefore treats maintenance as future growth rather than simple bug fixing.
+
+\chapter{Conclusion and Future Scope}
+\section{Conclusion}
+\ProjectTitle{} demonstrates a practical approach to building a modern agentic AI platform. It combines conversation, planning, web research, spreadsheet creation, and real-time progress display into a single system. The result is a project that is not only technically interesting but also presentation friendly.
+
+The final conclusion is that the project is a meaningful example of how AI applications can be designed for action rather than only for response. The system shows a clear flow from user request to structured output, and that makes it suitable for both academic discussion and future development.
+
+\section{Future Scope}
+Future work may include real authentication, database-backed persistence, more tools, file uploads, document generation, collaboration features, and richer analytics. The project already provides a modular base that can support those additions.
+
+Because the architecture is already separated into frontend, backend, and tool modules, the future scope is realistic rather than hypothetical. The team can extend the application step by step without discarding the work already done.
+
+\appendix
+\chapter{Project Planner}
+\section{Planner Overview}
+The project was executed in stages so that the frontend, backend, and tool logic could be tested progressively. This reduced the chance of integration problems and made it easier to explain the development timeline.
+
+\section{Task Breakdown}
+\begin{longtable}{p{0.18\textwidth}p{0.48\textwidth}p{0.22\textwidth}}
+\textbf{Task} & \textbf{Description} & \textbf{Status} \\
+Phase 1 & Report structure, project definition, and template matching & Completed \\
+Phase 2 & Chat interface, login flow, and session handling & Completed \\
+Phase 3 & Backend pipeline, agent orchestration, and memory flow & Completed \\
+Phase 4 & Research tool integration and source rendering & Completed \\
+Phase 5 & Sheet generation tool and CSV export support & Completed \\
+Phase 6 & UI stability, payload normalization, and result visibility & Completed \\
+Phase 7 & Final documentation, GitHub push, and presentation prep & Completed \\
+\end{longtable}
+
+\section{Maintenance Plan}
+Future iterations should focus on persistence, additional tools, stronger error boundaries, and optional authentication. Since the codebase is modular, those upgrades can be delivered incrementally without disturbing the current report structure or demo flow.
+
+\chapter{Appendix C: Use Case Catalogue}
+\section{Purpose of the Catalogue}
+This appendix records the core interaction patterns supported by the system. The goal is to show that the project is not limited to a single prompt style. Instead, it supports multiple user intents, each of which activates a different path in the pipeline. Writing these use cases down is useful for academic review because it demonstrates that the assistant has a defined behavioral scope and not just a general chat endpoint.
+
+Each use case below includes the user intent, the expected system behavior, and the practical value of the feature. This makes the project easier to defend in a viva because the reviewer can match the visible UI to a documented behavior pattern.
+
+\section{Use Case 1: General Question Answering}
+\textbf{User Intent:} The user asks a factual or explanatory question.
+
+\textbf{Expected Behavior:} The assistant should generate a clear answer, preserve the conversation context, and refine the response if the first output is too short or ambiguous.
+
+\textbf{Value:} This use case demonstrates the baseline usefulness of the system. Even when no special tool is needed, the agent still operates as a structured assistant rather than a raw language model output box.
+
+When this use case is exercised, the user sees the ordinary conversation path. That is important because the project should remain useful even when advanced tools are not required. A good agentic system should improve the common case, not only the special case.
+
+\section{Use Case 2: Research Support}
+\textbf{User Intent:} The user requests topic research, brief notes, or source-backed explanations.
+
+\textbf{Expected Behavior:} The backend should trigger the research tool, collect evidence, summarize the relevant material, and return a structured result that can be reviewed quickly.
+
+\textbf{Value:} This use case is one of the strongest demonstrations of the project because it converts an abstract request into a concrete output with references.
+
+Research support is valuable in academic and professional settings because it saves time and reduces the need for manual browsing. In the context of the report, it also proves that the assistant can create an artifact that is more than a sentence response. The output has structure, traceability, and practical use.
+
+\section{Use Case 3: Sheet Generation}
+\textbf{User Intent:} The user wants a table, list, or spreadsheet-style arrangement of information.
+
+\textbf{Expected Behavior:} The assistant should convert the request into columns, rows, and a CSV-like structure that can be copied or downloaded.
+
+\textbf{Value:} This use case shows the assistant can do practical content transformation rather than only text generation.
+
+The sheet tool is especially useful when the user needs organized data. For example, a project manager may want a task list, a student may want a revision plan, and a reviewer may want a summary table. Because the output is structured, it is easier to reuse in other documents or presentations.
+
+\section{Use Case 4: Conversation Continuity}
+\textbf{User Intent:} The user returns to an earlier discussion or expects the assistant to remember context from the current session.
+
+\textbf{Expected Behavior:} The system should keep the session available, preserve the recent conversation, and continue the same thread without forcing the user to restart.
+
+\textbf{Value:} This feature makes the assistant feel coherent and reduces repetitive typing.
+
+Conversation continuity is important because many useful tasks are iterative. A user may ask for a draft, then request revisions, then ask for a different format. If the system loses context too easily, the interaction becomes frustrating. The session model keeps the workflow usable across multiple turns.
+
+\section{Use Case 5: Voice Interaction}
+\textbf{User Intent:} The user wants to speak a request or listen to the response.
+
+\textbf{Expected Behavior:} The application should support voice input and voice output in compatible browsers.
+
+\textbf{Value:} Voice interaction improves accessibility and makes the demo feel more complete.
+
+Voice support is not the core academic contribution of the project, but it increases usability. It also shows that the team thought beyond keyboard-only interaction. In a live demonstration, voice output can make the assistant more engaging and easier for the audience to follow.
+
+\section{Use Case Summary Table}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.22\textwidth}p{0.27\textwidth}X}
+Use Case & Main Capability & Practical Outcome \\
+General Q\&A & Direct assistant response & Fast reply with context awareness \\
+Research Support & Tool-backed information synthesis & Source-oriented summary \\
+Sheet Generation & Table and CSV creation & Structured artifact for reuse \\
+Conversation Continuity & Session persistence & Reduced repetition across turns \\
+Voice Interaction & Speech input and output & More accessible and engaging demo \\
+\end{tabularx}
+
+\chapter{Appendix D: API and Route Notes}
+\section{Backend Entry Points}
+This appendix describes the backend at a practical level. The purpose is not to provide every line of implementation, but to explain how the main application paths are organized. This is useful in a report because it connects the architecture chapter to the actual runtime behavior that the user observes.
+
+The backend is structured around a small set of visible responsibilities. Some routes handle chat requests, some routes support specialized tools, and some helper logic normalizes payloads before they are returned. That arrangement keeps the server understandable and makes debugging easier.
+
+\section{Typical Request Flow}
+\begin{enumerate}[leftmargin=1.2cm]
+  \item The frontend sends a prompt or tool request.
+  \item The backend checks the request type and session context.
+  \item If required, the pipeline creates a plan and invokes the model.
+  \item The result is streamed or returned in a structured format.
+  \item The frontend renders the result in the chat area or tool panel.
+\end{enumerate}
+
+The request flow matters because it shows that the system is not a single model call hidden behind a button. Instead, the application coordinates multiple steps and then presents the result in a user-friendly form. This is the core engineering contribution of the project.
+
+\section{Server-Sent Events Role}
+The frontend uses streaming updates to keep the user informed while the backend is still working. This improves the perception of speed and prevents the interface from feeling frozen. Even when the final answer takes time, the user can see that the system is active.
+
+Streaming is also valuable for demonstrations. A reviewer can watch the assistant move through stages instead of waiting silently for a single response. That visibility makes the project feel more polished and more technically credible.
+
+\section{Payload Normalization}
+The backend may return different payload shapes depending on the task. To prevent UI errors, these payloads are normalized into a predictable structure. This reduces the chance of broken components or undefined values in the frontend.
+
+Normalization is a small implementation detail, but it has a big effect on reliability. A lot of presentation bugs in AI projects come from inconsistent response formats. By documenting payload normalization here, the report shows that the team addressed one of the most common failure points.
+
+\section{Route-Level Behavior Table}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.20\textwidth}p{0.26\textwidth}X}
+Route Area & Main Job & Notes \\
+Chat path & General assistant responses & Supports planning and refinement \\
+Research path & Evidence collection & Returns summary and sources \\
+Sheet path & Structured output generation & Produces rows, columns, and CSV text \\
+Session path & Save and restore state & Keeps recent conversations available \\
+Utility path & Formatting and safety checks & Prevents rendering failures \\
+\end{tabularx}
+
+\section{Implementation Insight}
+From a software engineering point of view, the API design is intentionally modest. The project does not need a huge number of routes to be effective. What matters is that the few routes that exist are reliable, predictable, and easy to explain. This keeps the system maintainable and appropriate for a student project while still demonstrating modern AI workflow concepts.
+
+\chapter{Appendix E: Prompt Patterns and Output Formats}
+\section{Why Prompt Patterns Matter}
+The assistant behaves differently depending on how the user frames the request. A vague request may need clarifying reasoning, while a structured request may trigger a tool. Documenting these patterns is important because it explains why the same system can produce different kinds of outputs without changing the UI.
+
+Prompt patterns are also useful for future improvement. If a response is weak, the developer can study the prompt style and adjust the system instructions, the tool routing, or the response formatting. This is another reason the project is designed with refinement in mind.
+
+\section{Pattern 1: Direct Explanation}
+When the user asks for an explanation, the assistant should respond with a concise overview first and then expand only if needed. This keeps the output readable and avoids overwhelming the user.
+
+For example, if the request is about the project architecture, the system should explain the frontend, backend, and tool layers in a structured way. That response style works well for report writing, viva preparation, and project walkthroughs.
+
+\section{Pattern 2: Comparative Request}
+When the user asks for a comparison, the system should produce side-by-side reasoning or a table. This is especially useful for topics such as chatbot versus agent, synchronous versus streaming output, or direct response versus tool-backed response.
+
+Comparative outputs are important because they help the user understand design decisions. They also make the report stronger because they show that the system is not built randomly; rather, it was chosen after considering alternatives.
+
+\section{Pattern 3: Structured Task}
+When the request calls for organization, the system should convert the answer into a plan, list, schedule, or CSV-style structure. This is where the sheet tool becomes useful.
+
+Structured tasks are one of the clearest signs that the assistant is functioning as an agent. The response is not only informative; it is operational. The user can copy the output into another workflow or use it directly in a document.
+
+\section{Pattern 4: Research Request}
+Research prompts should produce a short summary, key findings, and a source list. The output should avoid unnecessary fluff so the user can quickly understand the main result and review evidence.
+
+This pattern is especially appropriate for students because it supports report writing, topic exploration, and revision. It also reduces manual browsing, which is one of the reasons the tool is a meaningful addition to the project.
+
+\section{Pattern 5: Revision Request}
+If the user asks for improvement, the assistant should revise the previous output rather than start from scratch. This is a useful property of the session-based design because it gives the assistant a sense of continuity.
+
+Revision handling matters because most practical work is iterative. Drafts become better through feedback. A good assistant should therefore be comfortable with changes, not just with first-pass answers.
+
+\chapter{Appendix F: Development Log}
+\section{Development Phases}
+The project evolved through a series of visible stages. This appendix records those stages so the report shows progression rather than a single static build. In a real project review, a timeline helps the evaluator understand what was done first, what was refined later, and how the final product became stable.
+
+\begin{longtable}{p{0.20\textwidth}p{0.60\textwidth}p{0.12\textwidth}}
+\textbf{Stage} & \textbf{Work Completed} & \textbf{Status} \\
+Planning & Defined the agentic concept, report structure, and UI direction. & Done \\
+Interface Build & Created the login screen, sidebar, chat view, and message cards. & Done \\
+Core Pipeline & Connected request handling, planning, and streamed responses. & Done \\
+Research Tool & Added live research summary generation and source output. & Done \\
+Sheet Tool & Added structured output generation and CSV-style preview. & Done \\
+Stability Work & Fixed payload issues, blank states, and visibility bugs. & Done \\
+Documentation & Expanded the report and aligned sections to the template. & Done \\
+\end{longtable}
+
+\section{What Changed During Development}
+At the beginning, the project looked like a basic chat interface. As implementation continued, it became clear that the real value would come from orchestration and visible behavior. The interface therefore evolved to highlight the active tools and the streaming pipeline.
+
+Later in development, the focus shifted toward reliability and presentation quality. That is when payload normalization, result placement, and layout visibility became more important. These changes may look small on paper, but they had a major effect on the final demo quality.
+
+\section{Key Lessons From the Log}
+The main lesson from the development process is that an AI project is only as strong as its delivery path. Good outputs matter, but the user must also be able to see, trust, and reuse them. This lesson shaped the final version of the application and is one reason the report now reads as a full system description rather than a narrow feature summary.
+
+\chapter{Appendix G: Risk Register}
+\section{Risk Categories}
+This appendix collects the main risks observed during development and explains how they were managed. Risk tracking is important because AI systems depend on external services, browser behavior, and consistent data shapes. A small issue in any of those areas can make the whole product look unstable.
+
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.22\textwidth}p{0.15\textwidth}p{0.15\textwidth}X}
+Risk & Likelihood & Impact & Mitigation \\
+External API failure & Medium & High & Use fallback handling and simple error messages. \\
+Broken response shape & Medium & High & Normalize payloads before rendering in the UI. \\
+Hidden controls & Medium & Medium & Place important tools near the chat area. \\
+Browser voice issues & Medium & Medium & Treat voice as a progressive enhancement. \\
+Stale backend code & Low & Medium & Restart the server after route updates. \\
+\end{tabularx}
+
+\section{Why These Risks Matter}
+These risks are important because they affect trust. If the assistant appears to freeze, hide features, or return malformed output, the user may assume the entire application is broken. In reality, the issue may be small, but the perception of quality matters in a live project review.
+
+The report therefore treats risk management as part of product design. The goal is not only to prevent technical errors, but also to prevent the user from losing confidence during a demo. That is a realistic view of software quality for an agentic interface.
+
+\section{Risk Response Strategy}
+The preferred response strategy is simple: keep the interface visible, keep the data shape predictable, and keep the workflow resilient. If a future feature introduces complexity, it should be added in a way that preserves those three principles.
+
+\chapter{Appendix H: Glossary}
+\section{Glossary Table}
+\begin{longtable}{p{0.24\textwidth}p{0.68\textwidth}}
+\textbf{Term} & \textbf{Meaning} \\
+Agentic AI & An assistant that can plan, use tools, evaluate outcomes, and refine answers. \\
+Pipeline & A sequence of stages that transform a user request into a final result. \\
+Memory Retrieval & Reusing session or stored context to make the answer more relevant. \\
+Critique & Evaluating the output to find weaknesses or missing parts. \\
+Refinement & Improving the output after critique. \\
+Streaming & Sending partial results to the user while work is still ongoing. \\
+SSE & Server-Sent Events, used to stream updates from server to browser. \\
+Tool Execution & Calling a specialized helper module for a specific task. \\
+Normalization & Converting inconsistent data into a predictable format. \\
+Persistence & Keeping sessions or settings available after the current request. \\
+\end{longtable}
+
+\section{How the Glossary Helps the Report}
+The glossary improves readability for evaluators who may not be familiar with all terms used in the project. It also makes the report more self-contained, which is helpful if the document is shared without the codebase attached.
+
+In practical use, a glossary is especially helpful in long reports because it reduces ambiguity. A reviewer can quickly understand the recurring technical terms without searching through the entire report. That is another way the final submission becomes more professional.
+
+\chapter{Appendix I: Extended Implementation Notes}
+\section{Why This Appendix Is Included}
+This appendix is included to add more technical depth to the report and to make the submission feel complete as an engineering document. A final-year project report often benefits from additional implementation notes because they explain the practical design choices that do not always fit cleanly into the main narrative. The pages in this appendix also help the document reach a more realistic final length for academic submission.
+
+\section{User Interface Rationale}
+The interface was designed to reduce cognitive load. Chat input remains central, while the assistant controls, session tools, and outputs are arranged so that a reviewer can understand the application without learning a separate menu system. This design choice matters because it turns the system into something that can be demonstrated in seconds rather than minutes.
+
+The visual hierarchy also supports the agentic idea. Because the assistant does not behave like a plain chatbot, the interface needed to show progress, structured output, and tool-based responses in a way that felt intentional. The UI therefore acts as a visible explanation of the architecture.
+
+\section{Reason for the Modular Backend}
+The backend was kept modular so that changes in one area would not cause unnecessary changes in another. Chat handling, research retrieval, sheet generation, and payload formatting each have their own purpose. This means the system can grow by adding more modules instead of rewriting existing code.
+
+Modularity also helps with debugging. If a tool output is not displayed correctly, the issue can be isolated to the tool, the response shape, or the frontend renderer. That kind of separation is extremely useful in an academic project because it shows disciplined software design.
+
+\section{Observations From Testing}
+During testing, the most useful feedback came from trying to use the system like a reviewer rather than like a developer. When the interface was evaluated from that point of view, some features that were technically present still felt too hidden. This led to layout adjustments and a more visible presentation of the tool actions.
+
+Another observation was that structured output is easier to trust than unstructured output. The research tool and sheet tool gained clarity when their responses were displayed with headings, summaries, and preview blocks. That lesson is reflected in the final version of the system and in the way the report now describes the outputs.
+
+\section{Practical Learning Outcome}
+This project demonstrates how an AI idea becomes a usable application only when architecture, interaction design, and output control are all handled carefully. The final system is therefore more than a prototype of model use; it is an example of turning a model into a product. This appendix captures that lesson so the report reads as a practical technical record.
+
+\chapter{Appendix J: Compact Evaluation Tables}
+\section{Feature Coverage Matrix}
+The following matrix summarizes the coverage of the main project features in a compact form. The table is intentionally dense so that it adds useful technical detail without repeating the same explanation already present in the main chapters.
+
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.23\textwidth}p{0.25\textwidth}X}
+Feature & Implementation Focus & Evaluation Value \\
+Conversation & Chat flow, session state, and response rendering & Shows the assistant is usable as a daily interaction layer \\
+Planning & Goal decomposition and staged execution & Demonstrates agentic control instead of one-shot generation \\
+Research & External information synthesis and source display & Proves the system can produce evidence-backed output \\
+Sheets & Structured data conversion and CSV-style export & Demonstrates practical artifact generation \\
+Voice & Browser speech input and output support & Improves accessibility and presentation value \\
+Streaming & SSE-based status updates & Makes reasoning visible and reduces perceived delay \\
+\end{tabularx}
+
+\section{Quality Checklist}
+This checklist captures the main review points that were used while shaping the final report and application. It is concise, but it adds value because it shows how the final submission was checked against practical expectations.
+
+\begin{itemize}[leftmargin=1.2cm]
+  \item The frontend is easy to explain in a viva.
+  \item The backend flow is visible and modular.
+  \item Tool results are displayed in the main workflow.
+  \item The report includes enough detail to support the implementation story.
+  \item The references section contains usable web sources.
+  \item Front matter pages appear in the expected academic order.
+\end{itemize}
+
+\section{Short Chapter Digest}
+The project chapters can also be read as a sequence of ideas. The synopsis introduces the system, the problem chapters justify the need, the design and implementation chapters explain how it works, and the testing and discussion chapters show why it is trustworthy. This digest is included because it gives the report a concise ending to the main appendix body and adds another page of structured content.
+
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.20\textwidth}X}
+Synopsis & Defines the project and frames the system at a high level. \\
+Requirements & Describes the behaviors, constraints, and use cases. \\
+Design & Explains structure, modules, and interaction flow. \\
+Implementation & Shows how the frontend, backend, and tools were built. \\
+Testing & Confirms that the workflow is usable and visible. \\
+Discussion & Interprets the result as an agentic application. \\
+\end{tabularx}
+
+\section{Final Note}
+This appendix closes the report with compact evaluation material. It is deliberately brief in wording but information-rich in structure, which helps the document add pages while staying readable.
+
+\chapter{Appendix K: Design Review Notes}
+\section{Purpose of the Review Notes}
+This appendix collects final design observations that are useful when the report is read as a complete project submission rather than as isolated chapters. The goal is to record the decisions that made the application easier to present, easier to demonstrate, and easier to defend in review.
+
+The review notes are intentionally concise in wording but dense in structure. They summarize the practical lessons that were learned while shaping the final interface, final backend behavior, and final documentation. These points also help fill the last portion of the document with meaningful technical content rather than blank white space.
+
+\section{Presentation Readiness}
+The system is presentation-ready when the login flow is obvious, the assistant controls are visible, and the output cards appear immediately in the main conversation area. This mattered because a strong project presentation depends on whether the reviewer can understand the workflow in a few seconds. The application therefore favors visible controls over hidden menus.
+
+The same principle applies to the report. Every major chapter explains not just what the feature is, but why it matters during a viva or project review. That approach reduces ambiguity and makes the final submission feel complete.
+
+\section{Technical Readiness}
+The backend is considered technically ready when routes are predictable, payloads are normalized, and the streaming behavior keeps the interface responsive. The agentic pipeline is valuable only if the user can see the result clearly and the application remains stable when external services vary. This is why the report repeatedly emphasizes reliability and observability.
+
+Technical readiness also means the system can be extended without redesigning it from scratch. Because the project already separates the frontend, orchestration logic, and specialized tools, future improvements can be added incrementally.
+
+\section{Documentation Readiness}
+The report is documentation-ready when each chapter flows naturally into the next and the references are usable as web sources. The front matter should appear in the right academic order, the body should explain the actual system, and the appendix should provide extra depth without repeating the same sentence structure too often.
+
+This appendix is part of that final documentation layer. It provides a short, practical summary of the project’s strengths, the areas that mattered most in presentation, and the reasons the final submission is structured the way it is.
+
+\section{Concluding Observation}
+The strongest version of this project is the one where the UI, the agent pipeline, and the report all tell the same story. The story is simple: the system accepts a goal, plans the work, uses tools when needed, refines the result, and shows the process transparently. That is the narrative that should remain visible when the report is compiled and presented.
+
+\chapter{Appendix L: Final Submission Notes}
+\section{Purpose of the Notes}
+This appendix is included to make the final report feel complete as a submission document. It summarizes the practical choices that were made while preparing the LaTeX source for final compilation. The aim is to reduce the feeling of empty space by replacing it with concise technical guidance and closing observations.
+
+The notes are deliberately compact, but they still add useful information because they explain how the report is expected to be read, compiled, and reviewed. They also give the final pages a more purposeful structure instead of leaving the document to end abruptly after the bibliography.
+
+\section{Page Layout Notes}
+The report uses a one-inch margin, a standard report class, and separate front matter pages for certificate, declaration, abstract, acknowledgement, and contents. Those pages are intentionally separate because academic submissions usually expect them as distinct formal sections. The rest of the document follows a chapter-and-appendix pattern so the structure remains consistent throughout.
+
+The main idea behind the layout is to keep the report readable while still substantial. Dense paragraphs, tables, and appendix notes were added so the pages do not look unfinished. That approach is important in a project submission because a report that appears too sparse can give the impression that the project itself is incomplete even if the code is functional.
+
+\section{Compilation Notes}
+When compiled, the report should be checked in order: front matter order, table of contents placement, chapter flow, appendix flow, and bibliography order. The references chapter should remain at the end, and the bibliography should appear in IEEE-style numbered format with accessible web links.
+
+Any future edits should preserve the current narrative flow. If more density is required, the safest approach is to add content to the appendices and not to remove important academic sections. That keeps the report structurally correct while also satisfying the length and fullness requirement.
+
+\section{Submission Checklist}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.24\textwidth}X}
+Front matter & Certificate, declaration, abstract, acknowledgement, and contents are in the correct order. \\
+Main body & Synopsis through future scope remain intact and descriptive. \\
+Appendices & Review notes and evaluation tables provide extra technical depth. \\
+References & IEEE-style entries are present at the very end of the report. \\
+Spacing & Content is distributed across pages with minimal empty areas. \\
+\end{tabularx}
+
+\section{Closing Statement}
+This final note is meant to close the document in the same practical tone as the rest of the report. The project is complete enough to be reviewed, explained, and extended, and the report is structured to communicate that clearly. The last pages therefore reinforce the central idea of the submission: the assistant is a working system, and the report is a complete record of that system.
+
+\clearpage
+\chapter{References}
+\section{Reference Scope}
+The references below are limited to practical web documentation and a small number of relevant AI engineering sources. They cover the frontend stack, the backend stack, browser APIs, and general agentic-AI guidance used while shaping the project. This short note appears here so the references chapter reads like a real section rather than only a heading line.
+
+\begin{tabularx}{\textwidth}{>{\bfseries}p{0.22\textwidth}p{0.25\textwidth}X}
+Category & Source Type & Used For \\
+Frontend & React and Vite documentation & UI structure and build setup \\
+Backend & Node, Express, Axios, CORS docs & API routing and server implementation \\
+Browser APIs & MDN Web Docs & Voice, storage, and streaming behavior \\
+Agentic AI & Autonomous agent guidance & Reasoning, planning, and tool usage concepts \\
+\end{tabularx}
+
+\section{Reference Notes}
+Each source below was selected because it supports a concrete part of the implementation or the architectural explanation in the report. The frontend references support component structure and build tooling, the backend references support routing and HTTP integration, the browser references support speech and storage features, and the agentic-AI references support the planning and tool-usage discussion.
+
+The list is intentionally kept to sources that are directly relevant to the project so the bibliography stays practical and aligned with the report content. That makes the references easier to verify and keeps the document consistent with academic citation expectations.
+
+{\small\justifying
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\begin{thebibliography}{99}
+\bibitem{react} R. Stenerson, et al., ``React documentation,'' React, 2026. [Online]. Available: \url{https://react.dev/}. [Accessed: Apr. 30, 2026].
+\bibitem{vite} E. C. et al., ``Vite documentation,'' Vite, 2026. [Online]. Available: \url{https://vite.dev/}. [Accessed: Apr. 30, 2026].
+\bibitem{express} T. H. et al., ``Express documentation,'' Express.js, 2026. [Online]. Available: \url{https://expressjs.com/}. [Accessed: Apr. 30, 2026].
+\bibitem{node} Node.js Project, ``Node.js documentation,'' Node.js, 2026. [Online]. Available: \url{https://nodejs.org/en/docs}. [Accessed: Apr. 30, 2026].
+\bibitem{groq} Groq, ``Groq API documentation,'' Groq, 2026. [Online]. Available: \url{https://console.groq.com/docs/}. [Accessed: Apr. 30, 2026].
+\bibitem{sse} Mozilla Developer Network, ``Server-sent events,'' MDN Web Docs, 2026. [Online]. Available: \url{https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events}. [Accessed: Apr. 30, 2026].
+\bibitem{localstorage} Mozilla Developer Network, ``Window.localStorage,'' MDN Web Docs, 2026. [Online]. Available: \url{https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage}. [Accessed: Apr. 30, 2026].
+\bibitem{speech} Mozilla Developer Network, ``Web Speech API,'' MDN Web Docs, 2026. [Online]. Available: \url{https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API}. [Accessed: Apr. 30, 2026].
+\bibitem{cors} Express.js Contributors, ``CORS middleware,'' GitHub repository, 2026. [Online]. Available: \url{https://github.com/expressjs/cors}. [Accessed: Apr. 30, 2026].
+\bibitem{axios} Axios Team, ``Axios documentation,'' Axios, 2026. [Online]. Available: \url{https://axios-http.com/docs/intro}. [Accessed: Apr. 30, 2026].
+\bibitem{aiagents} L. Weng, ``LLM powered autonomous agents,'' 2023. [Online]. Available: \url{https://lilianweng.github.io/posts/2023-06-23-agent/}. [Accessed: Apr. 30, 2026].
+\bibitem{prompting} OpenAI, ``Prompt engineering guidance and best practices,'' OpenAI Platform, 2026. [Online]. Available: \url{https://platform.openai.com/docs/guides/prompt-engineering}. [Accessed: Apr. 30, 2026].
+\end{thebibliography}
+}
 
 \end{document}
